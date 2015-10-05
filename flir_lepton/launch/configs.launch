@@ -1,0 +1,10 @@
+<launch>
+
+  <!-- Load configuration parameters yaml -->
+  <rosparam 
+    file="$(find flir_lepton)/config/params.yaml"
+    command="load" 
+    ns="flir_lepton" 
+  />
+
+</launch>

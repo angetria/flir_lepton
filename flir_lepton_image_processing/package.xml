@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>flir_lepton_image_processing</name>
+  <version>0.1.0</version>
+  <description>Containts thermal ROI detection node using Flir-Lepton sensor.</description>
+
+  <maintainer email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</maintainer>
+
+  <license>BSD</license>
+
+  <author>Angelos Triantafyllidis</author>
+  <author>Alexandros Philotheou</author>
+  <author>Manos Tsardoulias</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roslint</build_depend>
+  <build_depend>message_generation</build_depend>
+
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>pluginlib</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>message_filters</depend>
+  <depend>flir_lepton_ros_comm</depend>
+
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>camera_calibration</exec_depend>
+
+  <!-- Test Depends -->
+  <test_depend>rostest</test_depend>
+  <test_depend>rosunit</test_depend>
+
+</package>

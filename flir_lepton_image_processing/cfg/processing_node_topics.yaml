@@ -1,0 +1,7 @@
+subscribed_topics:
+  thermal_image_topic: /rpi2/thermal/fused
+
+published_topics:
+  candidate_rois_topic: /rpi/thermal_rois_body
+  candidate_rois_alert_topic: /rpi/thermal_rois_info
+

@@ -1,0 +1,3 @@
+flir_lepton_image_processing/GeneralAlertInfo info
+
+float32 temperature

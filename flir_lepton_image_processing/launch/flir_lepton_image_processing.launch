@@ -1,0 +1,35 @@
+<launch>
+
+  <!-- =========================== The namespace =========================== -->
+  <arg name="namespace" default="flir_lepton_image_processing" />
+
+  <!-- Set to true to enable ba mode -->
+  <arg name="bag_mode" default="false" />
+
+  <group if="$(arg bag_mode)">
+    <arg name="path" default="/home/user/bag4.bag" />
+
+    <node
+      pkg="rosbag"
+      type="play"
+      name="player"
+      output="screen"
+      args="--clock -l $(arg path)" >
+    </node>
+  </group>
+
+  <arg name="output" default="screen" />
+
+  <node
+    name="thermal_camera_node"
+    type="thermal_camera_node"
+    pkg="flir_lepton_image_processing"
+    respawn="False"
+    output="$(arg output)"
+    ns="$(arg namespace)">
+
+    <rosparam file="$(find flir_lepton_image_processing)/cfg/processing_node_topics.yaml"
+    command="load" />
+  </node>
+
+</launch>

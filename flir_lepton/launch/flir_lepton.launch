@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="namespace" default="flir_lepton" />
+
+  <!-- Flir Lepton Node -->
+  <node 
+    type="flir_lepton_node" 
+    name="flir_lepton"
+    pkg="flir_lepton" 
+    respawn="false" 
+    output="screen" >
+
+    <!-- Load configuration parameters yaml -->
+    <rosparam 
+      file="$(find flir_lepton)/config/params.yaml"
+      command="load" 
+    />
+
+  </node>
+
+</launch>
