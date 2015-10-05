@@ -430,6 +430,9 @@ namespace pandora_vision
     Parameters::Debug::show_thermal_image =
      config.show_thermal_image;
 
+    Parameters::Thermal::detection_method =
+      config.detection_method;
+
     Parameters::Debug::show_find_rois =
       config.show_find_rois;
     Parameters::Debug::show_find_rois_size =
