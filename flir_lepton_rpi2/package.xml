@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>flir_lepton_rpi2</name>
+  <version>0.0.1</version>
+  <description>
+    Contains sources to interfere with Flir-Lepton LWIR camera under ROS-indigo
+  </description>
+  <maintainer email="klpanagi@gmail.com">Konstantinos Panayiotou</maintainer>
+  <maintainer email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</maintainer>
+  <license>BSD</license>
+
+  <author>Konstantinos Panayiotou</author>
+  <author>Angelos Triantafyllidis</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+
+</package>
