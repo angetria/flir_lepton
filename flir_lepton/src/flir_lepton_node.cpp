@@ -32,7 +32,7 @@
  * *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * *  POSSIBILITY OF SUCH DAMAGE.
  * *
- * * Author: Konstantinos Panayiotou, Aggelos Triantafillidis,
+ * * Author: Konstantinos Panayiotou, Angelos Triantafyllidis,
  * *  Tsirigotis Christos
  * * Maintainer: Konstantinos Panayiotou
  * * Email: klpanagi@gmail.com
@@ -47,7 +47,7 @@ using namespace flir_lepton;
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "flir_lepton_node");
-  FlirLeptonHardwareInterface flirLepron("/flir_lepton");
+  FlirLeptonHardwareInterface flirLepton("/flir_lepton");
 
   int rate;
   ros::NodeHandle("/flir_lepton").param<int>(
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 
   while(ros::ok())
   {
-    flirLepron.run();
+    flirLepton.run();
     loop_rate.sleep();
   }
 

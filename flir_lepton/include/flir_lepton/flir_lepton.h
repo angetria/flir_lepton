@@ -32,7 +32,7 @@
  * *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * *  POSSIBILITY OF SUCH DAMAGE.
  * *
- * * Author: Konstantinos Panayiotou, Aggelos Triantafillidis,
+ * * Author: Konstantinos Panayiotou, Agnelos Triantafyllidis,
  * *  Tsirigotis Christos
  * * Maintainer: Konstantinos Panayiotou
  * * Email: klpanagi@gmail.com

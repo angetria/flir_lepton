@@ -32,7 +32,7 @@
  * *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * *  POSSIBILITY OF SUCH DAMAGE.
  * *
- * * Author: Konstantinos Panayiotou, Aggelos Triantafillidis,
+ * * Author: Konstantinos Panayiotou, Angelos Triantafyllidis,
  * *  Tsirigotis Christos
  * * Maintainer: Konstantinos Panayiotou
  * * Email: klpanagi@gmail.com
@@ -62,7 +62,7 @@ namespace flir_lepton
          * @param minVal Minimun signal value captured on a thermal image frame.
          * @param maxVal Maximum signal value captured on a thermal image frame.
          * @return raw_image value.
-         */     
+         */
         static uint8_t signalToImageValue(
           uint16_t signal, uint16_t minVal, uint16_t maxVal);
 
@@ -70,15 +70,15 @@ namespace flir_lepton
         /*!
          * @brief Convert a signal value to absolute temperature value.
          * @param signalValue Signal value obtained from flir-lepton sensor.
-         */ 
-        static float signalToTemperature(uint16_t signalValue, 
+         */
+        static float signalToTemperature(uint16_t signalValue,
           std::map<uint16_t, float>& tempMap);
 
 
         /*!
          * @brief Fill an std::map that contains the calibration dataset
          */
-        static std::map<uint16_t, float> loadThernalCalibMap(
+        static std::map<uint16_t, float> loadThermalCalibMap(
           const std::string& calibFileUri);
 
 

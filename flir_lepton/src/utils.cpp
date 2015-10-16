@@ -32,7 +32,7 @@
  * *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * *  POSSIBILITY OF SUCH DAMAGE.
  * *
- * * Author: Konstantinos Panayiotou, Aggelos Triantafillidis,
+ * * Author: Konstantinos Panayiotou, Angelos Triantafyllidis,
  * *  Tsirigotis Christos
  * * Maintainer: Konstantinos Panayiotou
  * * Email: klpanagi@gmail.com
@@ -62,7 +62,7 @@ namespace flir_lepton
     }
 
 
-    float Utils::signalToTemperature(uint16_t signalValue, 
+    float Utils::signalToTemperature(uint16_t signalValue,
       std::map<uint16_t, float>& tempMap)
     {
       // The input signalValue is the keyword of the map with temperatures
@@ -74,11 +74,11 @@ namespace flir_lepton
         // Pass the value from the map
         temp_celcius = search->second;
       }
-      return temp_celcius;    
+      return temp_celcius;
     }
 
 
-    std::map<uint16_t, float> Utils::loadThernalCalibMap(
+    std::map<uint16_t, float> Utils::loadThermalCalibMap(
       const std::string& calibFileUri)
     {
       /* ---< Open a file input stream to read the dataset >--- */
@@ -103,7 +103,7 @@ namespace flir_lepton
         while(std::getline(file, line))
         {
           if(counter % 2 == 0)
-          { 
+          {
             // Read the keyword of map and convert it to uint16_t
             keyword_s = line;
             std::istringstream ss(keyword_s);

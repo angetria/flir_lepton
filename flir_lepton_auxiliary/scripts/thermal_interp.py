@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # coding:utf-8
 
-__author__ = 'Aggelos Triantafillidis', 'Konstantinos Panayiotou'
-__maintainer__ = 'Aggelos Triantafillidis', 'Konstantinos Panayiotou'
-__email__ = 'aggelostriandafillidis@gmail.com', 'klpanagi@gmail.com'
+__author__ = 'Aggelos Triantafyllidis', 'Konstantinos Panayiotou'
+__maintainer__ = 'Aggelos Triantafyllidis', 'Konstantinos Panayiotou'
+__email__ = 'aggelostriadafillidis@gmail.com', 'klpanagi@gmail.com'
 
 import pylab as pl
 import json
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 #class FlirUtils:
     #def __init__(self):
-       
+
 
 class Utils:
     def __init__(self):
@@ -56,14 +56,14 @@ def linear_interpolation(x_data, y_data):
     max_value_x = max(x_data)
     min_value_x = min(x_data)
     f1d = interp1d(x_data, y_data) # Create 1D interpolation function
-    x_data_new = range(min_value_x, max_value_x+1) # Max/Min values from dataset 
+    x_data_new = range(min_value_x, max_value_x+1) # Max/Min values from dataset
     y_data_new = f1d(x_data_new) # Calculate linear interpolated temperature values
     return {'x_data': x_data_new, 'y_data': y_data_new}
 
 def cubicSpline_interpolation(x_data, y_data):
     max_value_x = max(x_data)
     min_value_x = min(x_data)
-    x_data_new = range(min_value_x, max_value_x+1) # Max/Min values from dataset 
+    x_data_new = range(min_value_x, max_value_x+1) # Max/Min values from dataset
     tck = splrep(x_data, y_data, s=0)
     y_data_new = splev(x_data_new, tck, der=0)
     return {'x_data': x_data_new, 'y_data': y_data_new}
@@ -81,7 +81,7 @@ def writeData(x_data, y_data, fileUri):
 #### ---- <Load the dataset> ---- ####
 dataset_uri = '/home/pandora/pandora_ws/srv/rpi_hardware_interface/data/flir_lepton/dataset05.pandora'
 dataset = readDataset(dataset_uri)
-signals = dataset['x_data'] 
+signals = dataset['x_data']
 temps = dataset['y_data']
 ######################################
 

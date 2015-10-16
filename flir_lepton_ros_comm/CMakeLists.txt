@@ -27,7 +27,7 @@ generate_messages(
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 catkin_package(
-  CATKIN_DEPENDS 
+  CATKIN_DEPENDS
   message_generation
   message_runtime
   std_msgs

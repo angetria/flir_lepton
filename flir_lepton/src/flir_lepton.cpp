@@ -32,7 +32,7 @@
  * *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * *  POSSIBILITY OF SUCH DAMAGE.
  * *
- * * Author: Konstantinos Panayiotou, Aggelos Triantafillidis,
+ * * Author: Konstantinos Panayiotou, Angelos Triantafyllidis,
  * *  Tsirigotis Christos
  * * Maintainer: Konstantinos Panayiotou
  * * Email: klpanagi@gmail.com
@@ -54,7 +54,7 @@
 namespace flir_lepton
 {
   using flir_lepton_utils::Utils;
-  
+
   FlirLeptonHardwareInterface::FlirLeptonHardwareInterface(
     const std::string& ns):
     nh_(ns),
@@ -66,7 +66,7 @@ namespace flir_lepton
     loadParameters();
     frame_buffer_ = flirSpi_.makeFrameBuffer();
 
-    calibMap_ = Utils::loadThernalCalibMap(calibFileUri_);
+    calibMap_ = Utils::loadThermalCalibMap(calibFileUri_);
 
     openDevice();
     fusedMsg_publisher_ = nh_.advertise<flir_lepton_ros_comm::FlirLeptonMsg>(
@@ -88,7 +88,7 @@ namespace flir_lepton
   {
     int param;
     /* ----------- Load Parameters ------------ */
-    nh_.param<std::string>("dataset/spline_interpolated_data", calibFileUri_, 
+    nh_.param<std::string>("dataset/spline_interpolated_data", calibFileUri_,
       "/home/pandora/pandora_ws/src/rpi_hardware_interface/data" \
       "/flir_lepton/dataset_spline_interp.pandora");
 
@@ -159,7 +159,7 @@ namespace flir_lepton
 
     /* --------< Publish Messages >-------- */
     image_publisher_.publish(thermalImage);
-    fusedMsg_publisher_.publish(fusedMsg);    
+    fusedMsg_publisher_.publish(fusedMsg);
     /* ------------------------------------ */
   }
 
@@ -242,7 +242,7 @@ namespace flir_lepton
 
 
   void FlirLeptonHardwareInterface::craftImageMsg(
-    const std::vector<uint16_t>& thermal_signals, 
+    const std::vector<uint16_t>& thermal_signals,
     sensor_msgs::Image* thermalImage, uint16_t minValue, uint16_t maxValue)
   {
     thermalImage->header.stamp = now_;
@@ -265,7 +265,7 @@ namespace flir_lepton
 
 
   void FlirLeptonHardwareInterface::craftFusedMsg(
-    const std::vector<uint16_t>& thermal_signals, 
+    const std::vector<uint16_t>& thermal_signals,
     flir_lepton_ros_comm::FlirLeptonMsg* flirMsg, uint16_t minValue, uint16_t maxValue)
   {
     float temperSum = 0;
@@ -273,10 +273,10 @@ namespace flir_lepton
     flirMsg->header.frame_id = frame_id_;
 
     craftImageMsg(thermal_signals, &flirMsg->thermalImage, minValue, maxValue);
-     
+
     scene_tempers_.clear();
     // Vector containing the temperatures in image after calibration and vector
-    // with signal raw values 
+    // with signal raw values
     for (int i = 0; i < imageHeight_; i++) {
       for (int j = 0; j < imageWidth_; j++) {
         flirMsg->rawValues.data.push_back(thermal_signals.at(
