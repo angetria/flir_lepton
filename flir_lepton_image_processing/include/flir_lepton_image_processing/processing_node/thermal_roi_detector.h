@@ -44,10 +44,11 @@
 #include "utils/roi_filters.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @class RoiDetector
@@ -69,6 +70,7 @@ namespace pandora_vision
       static RoisConveyor findRois(const cv::Mat& thermalImage);
   };
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_PROCESSING_NODE_THERMAL_ROI_DETECTOR_H

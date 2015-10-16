@@ -47,10 +47,11 @@
 #include "utils/thermal_rois_conveyor.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @class MessageConversions
@@ -78,14 +79,14 @@ namespace pandora_vision
         vectors of the rois keypoints, bounding rectangles' vertices
         and blobs' outlines.
         @param[out] candidateRoisVector
-        [std::vector<flir_lepton_image_processing::CandidateRoisVectorMsg>*]
+        [std::vector< ::flir_lepton_image_processing::CandidateRoisVectorMsg>*]
         The vector containing the conveyor's rois in
         flir_lepton_image_processing::CandidateRoisVectorMsg format
         @return void
        **/
       static void createCandidateRoisVector(
         const RoisConveyor& conveyor,
-        std::vector<flir_lepton_image_processing::CandidateRoiMsg>*
+        std::vector< ::flir_lepton_image_processing::CandidateRoiMsg>*
         candidateRoisVector);
 
       /**
@@ -96,7 +97,7 @@ namespace pandora_vision
         and blobs' outlines.
         @param[in] image [cv::Mat&] The image to be packed in the message
         @param[out] candidateRoisVectorMsg
-        [flir_lepton_image_processing::CandidateRoisVectorMsg*]
+        [ ::flir_lepton_image_processing::CandidateRoisVectorMsg*]
         The output message
         @param[in] encoding [std::string&] The image's encoding
         @param[in] msg [const sensor_msgs::Image&] Needed to extract
@@ -106,7 +107,7 @@ namespace pandora_vision
       static void createCandidateRoisVectorMessage(
         const RoisConveyor& conveyor,
         const cv::Mat& image,
-        flir_lepton_image_processing::CandidateRoisVectorMsg*
+        ::flir_lepton_image_processing::CandidateRoisVectorMsg*
         candidateRoisVectorMsg,
         const std::string& encoding,
         const sensor_msgs::Image& msg);
@@ -126,28 +127,28 @@ namespace pandora_vision
       /**
         @brief Extracts a cv::Mat image from a custom ROS message  of type
         flir_lepton_image_processing::CandidateRoisVectorMsg
-        @param[in] msg [const flir_lepton_image_processing::CandidateRoisVectorMsg&]
+        @param[in] msg [const ::flir_lepton_image_processing::CandidateRoisVectorMsg&]
         The input ROS message
         @param[out] image [cv::Mat*] The output image
         @param[in] encoding [const std::string&] The image encoding
         @return void
        **/
       static void extractImageFromMessageContainer(
-        const flir_lepton_image_processing::CandidateRoisVectorMsg& msg,
+        const ::flir_lepton_image_processing::CandidateRoisVectorMsg& msg,
         cv::Mat* image, const std::string& encoding);
 
       /**
         @brief Recreates the RoisConveyor struct for the candidate rois
         from the flir_lepton_image_processing::CandidateRoiMsg message
         @param[in] candidateRoisVector
-        [const std::vector<flir_lepton_image_processing::CandidateRoiMsg>&]
+        [const std::vector< ::flir_lepton_image_processing::CandidateRoiMsg>&]
         The input candidate rois
         @param[out] conveyor [RoisConveyor*] The output conveyor
         struct
         @return void
        **/
       static void fromCandidateRoiMsgToConveyor(
-        const std::vector<flir_lepton_image_processing::CandidateRoiMsg>&
+        const std::vector< ::flir_lepton_image_processing::CandidateRoiMsg>&
         candidateRoisVector,
         RoisConveyor* conveyor);
 
@@ -164,7 +165,7 @@ namespace pandora_vision
         @return void
        **/
       static void unpackMessage(
-        const flir_lepton_image_processing::CandidateRoisVectorMsg& roisMsg,
+        const ::flir_lepton_image_processing::CandidateRoisVectorMsg& roisMsg,
         RoisConveyor* conveyor,
         cv::Mat* image,
         const std::string& encoding);
@@ -180,6 +181,7 @@ namespace pandora_vision
         const std_msgs::Float32MultiArray& inArray);
   };
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_UTILS_MESSAGE_CONVERSIONS_H

@@ -39,10 +39,11 @@
 #include "processing_node/process.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @brief Default constructor. Initiates communications, loads parameters.
@@ -60,12 +61,12 @@ namespace pandora_vision
 
     // Advertise the candidate Rois found by the process node.
     candidateRoisPublisher_ = nodeHandle_.advertise
-      <flir_lepton_image_processing::CandidateRoisVectorMsg>(
+      < ::flir_lepton_image_processing::CandidateRoisVectorMsg>(
       candidateRoisTopic_, 1);
 
     // Advertise the candidate Rois Alert message found by the process node.
     candidateRoisAlertPublisher_ = nodeHandle_.advertise
-      <flir_lepton_image_processing::ThermalAlertVector>(
+      < ::flir_lepton_image_processing::ThermalAlertVector>(
       candidateRoisAlertTopic_, 1);
 
     // The dynamic reconfigure (process) parameter's callback
@@ -161,7 +162,7 @@ namespace pandora_vision
       &rois, msg.temperatures, Parameters::Thermal::probability_method);
 
     // Create the candidate rois message
-    flir_lepton_image_processing::CandidateRoisVectorMsg thermalCandidateRoisMsg;
+    ::flir_lepton_image_processing::CandidateRoisVectorMsg thermalCandidateRoisMsg;
 
     // Pack information about rois found and the thermal image
     // inside a message.
@@ -172,9 +173,9 @@ namespace pandora_vision
       msg.thermalImage);
 
     // Fill the thermal message to be sent
-    flir_lepton_image_processing::ThermalAlert thermalMsg;
-    flir_lepton_image_processing::ThermalAlertVector thermalVectorMsg;
-    flir_lepton_image_processing::GeneralAlertInfo alert;
+    ::flir_lepton_image_processing::ThermalAlert thermalMsg;
+    ::flir_lepton_image_processing::ThermalAlertVector thermalVectorMsg;
+    ::flir_lepton_image_processing::GeneralAlertInfo alert;
 
     // Finally find the yaw and pitch of each candidate roi found and
     // publish it if a roi exists.
@@ -381,12 +382,12 @@ namespace pandora_vision
 
   /**
     @brief The function called when a parameter is changed
-    @param[in] config [const flir_lepton_image_processing::thermal_cfgConfig&]
+    @param[in] config [const ::flir_lepton_image_processing::thermal_cfgConfig&]
     @param[in] level [const uint32_t]
     @return void
    **/
   void Process::parametersCallback(
-    const flir_lepton_image_processing::thermal_cfgConfig& config,
+    const ::flir_lepton_image_processing::thermal_cfgConfig& config,
     const uint32_t& level)
   {
     ROS_INFO_NAMED(PKG_NAME, "[Thermal node] Parameters callback called");
@@ -534,4 +535,5 @@ namespace pandora_vision
     Parameters::Thermal::right_tolerance = config.right_tolerance;
   }
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2

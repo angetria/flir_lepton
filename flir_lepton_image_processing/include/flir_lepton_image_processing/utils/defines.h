@@ -76,12 +76,14 @@
 #define PKG_NAME "flir_lepton_image_processing"
 
 /**
-  @namespace vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_UTILS_DEFINES_H

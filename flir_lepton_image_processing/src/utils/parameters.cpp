@@ -39,10 +39,11 @@
 #include "utils/parameters.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   //////////////////// Blob detection - specific parameters ////////////////////
 
@@ -179,4 +180,5 @@ namespace pandora_vision
   int Parameters::Outline::AB_to_MO_ratio = 4;
   int Parameters::Outline::minimum_curve_points = 50;
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2

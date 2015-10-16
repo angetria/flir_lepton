@@ -49,10 +49,11 @@
 #include "std_msgs/Float32MultiArray.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @class Process
@@ -88,11 +89,11 @@ namespace pandora_vision
       std::string candidateRoisAlertTopic_;
 
       // The dynamic reconfigure (process) parameters' server
-      dynamic_reconfigure::Server<flir_lepton_image_processing::thermal_cfgConfig>
+      dynamic_reconfigure::Server< ::flir_lepton_image_processing::thermal_cfgConfig>
         server;
 
       // The dynamic reconfigure (process) parameters' callback
-      dynamic_reconfigure::Server<flir_lepton_image_processing::thermal_cfgConfig>
+      dynamic_reconfigure::Server< ::flir_lepton_image_processing::thermal_cfgConfig>
        ::CallbackType f;
 
       /**
@@ -116,12 +117,12 @@ namespace pandora_vision
 
       /**
         @brief The function called when a parameter is changed
-        @param[in] config [const pandora_vision_hole::thermal_cfgConfig&]
+        @param[in] config [const ::flir_lepton_image_processing::thermal_cfgConfig&]
         @param[in] level [const uint32_t]
         @return void
        **/
       void parametersCallback(
-        const flir_lepton_image_processing::thermal_cfgConfig& config,
+        const ::flir_lepton_image_processing::thermal_cfgConfig& config,
         const uint32_t& level);
 
 
@@ -153,6 +154,7 @@ namespace pandora_vision
       ~Process(void);
   };
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_PROCESSING_NODE_PROCESS_H

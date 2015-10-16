@@ -39,10 +39,11 @@
 #include "utils/message_conversions.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @brief Converts a cv::Mat image into a sensor_msgs::Image message
@@ -72,14 +73,14 @@ namespace pandora_vision
     vectors of the rois keypoints, bounding rectangles' vertices
     and blobs' outlines
     @param[out] candidateRoisVector
-    [std::vector<flir_lepton_image_processing::CandidateRoisVectorMsg>*]
+    [std::vector< ::flir_lepton_image_processing::CandidateRoisVectorMsg>*]
     The vector containing the conveyor's rois in
     flir_lepton_image_processing::CandidateRoisVectorMsg format
     @return void
    **/
   void MessageConversions::createCandidateRoisVector(
     const RoisConveyor& conveyor,
-    std::vector<flir_lepton_image_processing::CandidateRoiMsg>* candidateRoisVector)
+    std::vector< ::flir_lepton_image_processing::CandidateRoiMsg>* candidateRoisVector)
   {
     #ifdef DEBUG_TIME
     Timer::start("createCandidateRoisVector");
@@ -89,7 +90,7 @@ namespace pandora_vision
     // candidateRois vector
     for (unsigned int i = 0; i < conveyor.size(); i++)
     {
-      flir_lepton_image_processing::CandidateRoiMsg roiMsg;
+      ::flir_lepton_image_processing::CandidateRoiMsg roiMsg;
 
       // Push back the keypoint
       roiMsg.keypointX = conveyor.rois[i].keypoint.pt.x;
@@ -126,7 +127,7 @@ namespace pandora_vision
     and blobs' outlines
     @param[in] image [cv::Mat&] The image to be packed in the message
     @param[out] candidateRoisVectorMsg
-    [flir_lepton_image_processing::CandidateRoisVectorMsg*] The output message
+    [::flir_lepton_image_processing::CandidateRoisVectorMsg*] The output message
     @param[in] encoding [std::string&] The image's encoding
     @param[in] msg [const sensor_msgs::Image&] Needed to extract
     its header and place it as the header of the output message
@@ -135,7 +136,7 @@ namespace pandora_vision
   void MessageConversions::createCandidateRoisVectorMessage(
     const RoisConveyor& conveyor,
     const cv::Mat& image,
-    flir_lepton_image_processing::CandidateRoisVectorMsg* candidateRoisVectorMsg,
+    ::flir_lepton_image_processing::CandidateRoisVectorMsg* candidateRoisVectorMsg,
     const std::string& encoding,
     const sensor_msgs::Image& msg)
   {
@@ -143,9 +144,9 @@ namespace pandora_vision
     Timer::start("createCandidateRoisVectorMessage");
     #endif
 
-    // Fill the flir_lepton_image_processing::CandidateRoisVectorMsg's
+    // Fill the ::flir_lepton_image_processing::CandidateRoisVectorMsg's
     // candidateRois vector
-    std::vector<flir_lepton_image_processing::CandidateRoiMsg> candidateRoisVector;
+    std::vector< ::flir_lepton_image_processing::CandidateRoiMsg> candidateRoisVector;
     createCandidateRoisVector(conveyor, &candidateRoisVector);
 
     candidateRoisVectorMsg->candidateRois = candidateRoisVector;
@@ -193,14 +194,14 @@ namespace pandora_vision
   /**
     @brief Extracts a cv::Mat image from a custom ROS message of type
     flir_lepton_image_processing::CandidateRoisVectorMsg
-    @param[in] msg [const flir_lepton_image_processing::candidateRoisVectorMsg&]
+    @param[in] msg [const ::flir_lepton_image_processing::candidateRoisVectorMsg&]
     The input ROS message
     @param[out] image [cv::Mat*] The output image
     @param[in] encoding [const std::string&] The image encoding
     @return void
    **/
   void MessageConversions::extractImageFromMessageContainer(
-    const flir_lepton_image_processing::CandidateRoisVectorMsg& msg,
+    const ::flir_lepton_image_processing::CandidateRoisVectorMsg& msg,
     cv::Mat* image, const std::string& encoding)
   {
     #ifdef DEBUG_TIME
@@ -220,14 +221,14 @@ namespace pandora_vision
     @brief Recreates the RoisConveyor struct for the candidate rois
     from the flir_lepton_image_processing::CandidateRoisMsg message
     @param[in] candidateRoisVector
-    [const std::vector<flir_lepton_image_processing::CandidateRoiMsg>&]
+    [const std::vector< ::flir_lepton_image_processing::CandidateRoiMsg>&]
     The input candidate rois
     @param[out] conveyor [RoisConveyor*] The output conveyor
     struct
     @return void
    **/
   void MessageConversions::fromCandidateRoiMsgToConveyor(
-    const std::vector<flir_lepton_image_processing::CandidateRoiMsg>&
+    const std::vector< ::flir_lepton_image_processing::CandidateRoiMsg>&
     candidateRoisVector,
     RoisConveyor* conveyor)
   {
@@ -283,7 +284,7 @@ namespace pandora_vision
     @brief Unpacks the the RoisConveyor struct for the
     candidate rois.
     @param[in] roisMsg
-    [flir_lepton_image_processing::CandidateRoisVectorMsg&] The input
+    [::flir_lepton_image_processing::CandidateRoisVectorMsg&] The input
     candidate rois message obtained through the processor node
     @param[out] conveyor [RoisConveyor*] The output conveyor
     struct
@@ -292,7 +293,7 @@ namespace pandora_vision
     @return void
    **/
   void MessageConversions::unpackMessage(
-    const flir_lepton_image_processing::CandidateRoisVectorMsg& roisMsg,
+    const ::flir_lepton_image_processing::CandidateRoisVectorMsg& roisMsg,
     RoisConveyor* conveyor,
     cv::Mat* image,
     const std::string& encoding)
@@ -340,4 +341,5 @@ namespace pandora_vision
     return image;
   }
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2

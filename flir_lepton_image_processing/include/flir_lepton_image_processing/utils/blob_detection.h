@@ -41,10 +41,11 @@
 #include "utils/morphological_operators.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @class BlobDetection
@@ -63,6 +64,7 @@ namespace pandora_vision
         std::vector<cv::KeyPoint>* keyPointsOut);
   };
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_UTILS_BLOB_DETECTION_H

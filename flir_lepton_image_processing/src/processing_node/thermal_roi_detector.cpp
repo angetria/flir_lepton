@@ -39,10 +39,11 @@
 #include "processing_node/thermal_roi_detector.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @brief Finds the Rois in the thermal image in CV_8UC1 format.
@@ -177,4 +178,5 @@ namespace pandora_vision
     return conveyor;
   }
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2

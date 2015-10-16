@@ -41,10 +41,11 @@
 #include "utils/visualization.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @class Morphology
@@ -139,6 +140,7 @@ namespace pandora_vision
         const int& steps, const bool& visualize = false);
   };
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_UTILS_MORPHOLOGICAL_OPERATORS_H

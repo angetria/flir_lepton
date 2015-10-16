@@ -43,10 +43,11 @@
 #include "utils/defines.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @brief The structure that represents a single thermal region of interest.
@@ -235,6 +236,7 @@ namespace pandora_vision
       static void shuffle(RoisConveyor* src);
   };
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processsing
+}  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_UTILS_THERMAL_ROIS_CONVEYOR_H

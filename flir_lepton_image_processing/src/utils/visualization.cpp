@@ -39,10 +39,11 @@
 #include "utils/visualization.h"
 
 /**
-  @namespace pandora_vision
-  @brief The main namespace for PANDORA vision
+  @brief The namespaces for this package
  **/
-namespace pandora_vision
+namespace flir_lepton_rpi2
+{
+namespace flir_lepton_image_processing
 {
   /**
     @brief Shows multiple images in one window
@@ -344,4 +345,5 @@ namespace pandora_vision
     cv::waitKey(ms);
   }
 
-}  // namespace pandora_vision
+}  // namespace flir_lepton_image_processing
+}  // namespace flir_lepton_rpi2
