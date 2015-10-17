@@ -61,12 +61,12 @@ namespace flir_lepton_image_processing
 
     // Advertise the candidate Rois found by the process node.
     candidateRoisPublisher_ = nodeHandle_.advertise
-      < ::flir_lepton_image_processing::CandidateRoisVectorMsg>(
+      <flir_lepton_ros_comm::CandidateRoisVectorMsg>(
       candidateRoisTopic_, 1);
 
     // Advertise the candidate Rois Alert message found by the process node.
     candidateRoisAlertPublisher_ = nodeHandle_.advertise
-      < ::flir_lepton_image_processing::ThermalAlertVector>(
+      <flir_lepton_ros_comm::ThermalAlertVector>(
       candidateRoisAlertTopic_, 1);
 
     // The dynamic reconfigure (process) parameter's callback
@@ -162,7 +162,7 @@ namespace flir_lepton_image_processing
       &rois, msg.temperatures, Parameters::Thermal::probability_method);
 
     // Create the candidate rois message
-    ::flir_lepton_image_processing::CandidateRoisVectorMsg thermalCandidateRoisMsg;
+    flir_lepton_ros_comm::CandidateRoisVectorMsg thermalCandidateRoisMsg;
 
     // Pack information about rois found and the thermal image
     // inside a message.
@@ -173,9 +173,9 @@ namespace flir_lepton_image_processing
       msg.thermalImage);
 
     // Fill the thermal message to be sent
-    ::flir_lepton_image_processing::ThermalAlert thermalMsg;
-    ::flir_lepton_image_processing::ThermalAlertVector thermalVectorMsg;
-    ::flir_lepton_image_processing::GeneralAlertInfo alert;
+    flir_lepton_ros_comm::ThermalAlert thermalMsg;
+    flir_lepton_ros_comm::ThermalAlertVector thermalVectorMsg;
+    flir_lepton_ros_comm::GeneralAlertInfo alert;
 
     // Finally find the yaw and pitch of each candidate roi found and
     // publish it if a roi exists.

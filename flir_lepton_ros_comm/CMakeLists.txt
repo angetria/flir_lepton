@@ -12,6 +12,11 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   FlirLeptonMsg.msg
+  CandidateRoiMsg.msg
+  CandidateRoisVectorMsg.msg
+  GeneralAlertInfo.msg
+  ThermalAlert.msg
+  ThermalAlertVector.msg
 )
 
 ## Generate added messages with any dependencies listed here

@@ -42,9 +42,9 @@
 #include "processing_node/thermal_roi_detector.h"
 #include "utils/parameters.h"
 #include "utils/message_conversions.h"
-#include "flir_lepton_image_processing/GeneralAlertInfo.h"
-#include "flir_lepton_image_processing/ThermalAlert.h"
-#include "flir_lepton_image_processing/ThermalAlertVector.h"
+#include "flir_lepton_ros_comm/GeneralAlertInfo.h"
+#include "flir_lepton_ros_comm/ThermalAlert.h"
+#include "flir_lepton_ros_comm/ThermalAlertVector.h"
 #include "flir_lepton_ros_comm/FlirLeptonMsg.h"
 #include "std_msgs/Float32MultiArray.h"
 

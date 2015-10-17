@@ -4,7 +4,6 @@ project(flir_lepton_image_processing)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   pluginlib
-  message_generation
   rospy
   cv_bridge
   image_transport
@@ -20,26 +19,10 @@ generate_dynamic_reconfigure_options(
   cfg/thermal_cfg.cfg
   )
 
-add_message_files(
-  FILES
-  CandidateRoiMsg.msg
-  CandidateRoisVectorMsg.msg
-  GeneralAlertInfo.msg
-  ThermalAlert.msg
-  ThermalAlertVector.msg
-  )
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  sensor_msgs
-  )
-
 catkin_package(
   CATKIN_DEPENDS
     roscpp
     pluginlib
-    message_runtime
     rospy
     cv_bridge
     image_transport
