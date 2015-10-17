@@ -3,16 +3,11 @@ project(flir_lepton_image_processing)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  pluginlib
-  rospy
   cv_bridge
-  image_transport
-  std_msgs
-  sensor_msgs
+  #image_transport
   dynamic_reconfigure
-  message_filters
-  roslint
   flir_lepton_ros_comm
+  roslint
   )
 
 generate_dynamic_reconfigure_options(
@@ -22,14 +17,9 @@ generate_dynamic_reconfigure_options(
 catkin_package(
   CATKIN_DEPENDS
     roscpp
-    pluginlib
-    rospy
     cv_bridge
-    image_transport
-    std_msgs
-    sensor_msgs
+    #image_transport
     dynamic_reconfigure
-    message_filters
     flir_lepton_ros_comm
   INCLUDE_DIRS
     include

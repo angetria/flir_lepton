@@ -17,17 +17,10 @@
   <build_depend>roslint</build_depend>
 
   <depend>roscpp</depend>
-  <depend>rospy</depend>
-  <depend>pluginlib</depend>
   <depend>cv_bridge</depend>
-  <depend>image_transport</depend>
-  <depend>std_msgs</depend>
-  <depend>sensor_msgs</depend>
+  <!--<depend>image_transport</depend>-->
   <depend>dynamic_reconfigure</depend>
-  <depend>message_filters</depend>
   <depend>flir_lepton_ros_comm</depend>
-
-  <exec_depend>camera_calibration</exec_depend>
 
   <!-- Test Depends -->
   <test_depend>rostest</test_depend>
