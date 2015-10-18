@@ -46,6 +46,9 @@ add_library(${PROJECT_NAME}_utils
   src/utils/visualization.cpp
   )
 
+# Ensure all their headers get built before any targets that need them
+add_dependencies(${PROJECT_NAME}_utils ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(${PROJECT_NAME}_utils
   ${catkin_LIBRARIES}
   )

@@ -3,13 +3,13 @@ project(flir_lepton_ros_comm)
 
 find_package(catkin REQUIRED COMPONENTS
   message_generation
-  message_runtime
+  #message_runtime
   std_msgs
   sensor_msgs
 )
 
 
-add_message_files(
+add_message_files(DIRECTORY msg
   FILES
   FlirLeptonMsg.msg
   CandidateRoiMsg.msg
@@ -33,7 +33,7 @@ generate_messages(
 ## Declare things to be passed to dependent projects
 catkin_package(
   CATKIN_DEPENDS
-  message_generation
+  #message_generation
   message_runtime
   std_msgs
   sensor_msgs
