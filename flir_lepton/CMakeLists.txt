@@ -42,6 +42,8 @@ target_link_libraries(${PROJECT_NAME}_lib
   ${PROJECT_NAME}_utils_lib
 )
 
+add_dependencies(${PROJECT_NAME}_lib ${catkin_EXPORTED_TARGETS})
+
 ################################################################################
 #                  Flir Lepton Hardware Interface Executable                   #
 ################################################################################
@@ -49,6 +51,8 @@ target_link_libraries(${PROJECT_NAME}_lib
 add_executable(${PROJECT_NAME}_node
   src/flir_lepton_node.cpp
 )
+
+add_dependencies(${PROJECT_NAME}_node ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
