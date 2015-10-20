@@ -51,10 +51,10 @@
 /* ------------------------------- */
 
 
+namespace flir_lepton_rpi2
+{
 namespace flir_lepton
 {
-  using flir_lepton_utils::Utils;
-
   FlirLeptonHardwareInterface::FlirLeptonHardwareInterface(
     const std::string& ns):
     nh_(ns),
@@ -367,3 +367,4 @@ namespace flir_lepton
   }
 
 }  // namespace flir_lepton
+}  // namespace flir_lepton_rpi2

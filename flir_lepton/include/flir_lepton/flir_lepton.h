@@ -58,6 +58,8 @@
 #include "flir_lepton_ros_comm/FlirLeptonMsg.h"
 /* --------------------- */
 
+namespace flir_lepton_rpi2
+{
 namespace flir_lepton
 {
   class FlirLeptonHardwareInterface
@@ -155,7 +157,7 @@ namespace flir_lepton
       * @brief Fills Thermal fused ros message
       */
       void craftFusedMsg(const std::vector<uint16_t>& thermal_signals,
-        flir_lepton_ros_comm::FlirLeptonMsg* flirMsg, uint16_t minValue, 
+        flir_lepton_ros_comm::FlirLeptonMsg* flirMsg, uint16_t minValue,
         uint16_t maxValue);
 
 
@@ -163,7 +165,7 @@ namespace flir_lepton
        * @brief Fills Thermal image ros message
        */
       void craftImageMsg(
-        const std::vector<uint16_t>& thermal_signals, 
+        const std::vector<uint16_t>& thermal_signals,
         sensor_msgs::Image* thermalImage, uint16_t minValue,
         uint16_t maxValue);
 
@@ -189,6 +191,8 @@ namespace flir_lepton
       void run(void);
 
   };
+
 }  // namespace flir_lepton
+}  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_FLIR_LEPTON_H

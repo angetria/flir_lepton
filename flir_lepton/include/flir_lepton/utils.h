@@ -48,43 +48,41 @@
 #include <cstring>
 
 
+namespace flir_lepton_rpi2
+{
 namespace flir_lepton
 {
-  namespace flir_lepton_utils
+  class Utils : private boost::noncopyable
   {
-    class Utils : private boost::noncopyable
-    {
-      public:
-
-        /*!
-         * @brief Converts signal values to raw_image values.
-         * @param signal signal value
-         * @param minVal Minimun signal value captured on a thermal image frame.
-         * @param maxVal Maximum signal value captured on a thermal image frame.
-         * @return raw_image value.
-         */
-        static uint8_t signalToImageValue(
-          uint16_t signal, uint16_t minVal, uint16_t maxVal);
+    public:
+      /*!
+       * @brief Converts signal values to raw_image values.
+       * @param signal signal value
+       * @param minVal Minimun signal value captured on a thermal image frame.
+       * @param maxVal Maximum signal value captured on a thermal image frame.
+       * @return raw_image value.
+       */
+      static uint8_t signalToImageValue(
+        uint16_t signal, uint16_t minVal, uint16_t maxVal);
 
 
-        /*!
-         * @brief Convert a signal value to absolute temperature value.
-         * @param signalValue Signal value obtained from flir-lepton sensor.
-         */
-        static float signalToTemperature(uint16_t signalValue,
-          std::map<uint16_t, float>& tempMap);
+      /*!
+       * @brief Convert a signal value to absolute temperature value.
+       * @param signalValue Signal value obtained from flir-lepton sensor.
+       */
+      static float signalToTemperature(uint16_t signalValue,
+        std::map<uint16_t, float>& tempMap);
 
 
-        /*!
-         * @brief Fill an std::map that contains the calibration dataset
-         */
-        static std::map<uint16_t, float> loadThermalCalibMap(
-          const std::string& calibFileUri);
+      /*!
+       * @brief Fill an std::map that contains the calibration dataset
+       */
+      static std::map<uint16_t, float> loadThermalCalibMap(
+        const std::string& calibFileUri);
+  };
 
-
-    };
-  }
-}
+}  // namespace flir_lepton
+}  // namespace flir_lepton_rpi2
 
 #endif
 

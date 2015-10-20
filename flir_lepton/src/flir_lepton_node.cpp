@@ -42,15 +42,13 @@
 
 #include "flir_lepton/flir_lepton.h"
 
-using namespace flir_lepton;
-
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "flir_lepton_node");
-  FlirLeptonHardwareInterface flirLepton("/flir_lepton");
+  flir_lepton_rpi2::flir_lepton::FlirLeptonHardwareInterface flirLepton("/flir_lepton_rpi2");
 
   int rate;
-  ros::NodeHandle("/flir_lepton").param<int>(
+  ros::NodeHandle("/flir_lepton_rpi2").param<int>(
       "interface_rate", rate, 27);
   ros::Rate loop_rate(rate);
 

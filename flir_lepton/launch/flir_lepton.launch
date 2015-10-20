@@ -4,17 +4,17 @@
   <arg name="namespace" default="flir_lepton" />
 
   <!-- Flir Lepton Node -->
-  <node 
-    type="flir_lepton_node" 
+  <node
+    type="flir_lepton_node"
     name="flir_lepton"
-    pkg="flir_lepton" 
-    respawn="false" 
+    pkg="flir_lepton"
+    respawn="false"
     output="screen" >
 
     <!-- Load configuration parameters yaml -->
-    <rosparam 
+    <rosparam
       file="$(find flir_lepton)/config/params.yaml"
-      command="load" 
+      command="load"
     />
 
   </node>
