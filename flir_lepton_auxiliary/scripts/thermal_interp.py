@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # coding:utf-8
 
-__author__ = 'Aggelos Triantafyllidis', 'Konstantinos Panayiotou'
-__maintainer__ = 'Aggelos Triantafyllidis', 'Konstantinos Panayiotou'
+__author__ = 'Angelos Triantafyllidis', 'Konstantinos Panayiotou'
+__maintainer__ = 'Angelos Triantafyllidis', 'Konstantinos Panayiotou'
 __email__ = 'aggelostriadafillidis@gmail.com', 'klpanagi@gmail.com'
 
 import pylab as pl

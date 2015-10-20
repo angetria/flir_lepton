@@ -14,9 +14,9 @@ x4 = 68
 y3 = 6
 y4 = 8
 
-# Make the dataset text for 0,5 meters.
+# Make the dataset from raw pixel flir-lepton images.
 try:
-    dataset = open("dataset05.pandora","w")
+    dataset = open("dataset.iemb","w")
 except IOError:
      print "dataset file could not be made"
     sys.exit()
@@ -24,9 +24,10 @@ except IOError:
 # Process each image raw data for all images
 for i in range(20,51):
 
+    # The flir-lepton images to be read.
     fileName = \
-        "flir_calibration_pictures/depth_05/d_5_T"\
-        + str(i) + ".bitch"
+        "Input your flir-lepton images full path"\
+        + str(i) + ".iemb"
 
     try:
         data = open(fileName, "r")
