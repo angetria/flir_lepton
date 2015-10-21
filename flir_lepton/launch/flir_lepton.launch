@@ -6,7 +6,7 @@
   <!-- Flir Lepton Node -->
   <node
     type="flir_lepton_node"
-    name="flir_lepton"
+    name="flir_lepton_node"
     pkg="flir_lepton"
     respawn="false"
     output="screen" >
