@@ -2,7 +2,7 @@
 <package format="2">
   <name>flir_lepton_image_processing</name>
   <version>0.1.0</version>
-  <description>Containts thermal ROI detection node using Flir-Lepton sensor.</description>
+  <description>Contains thermal ROI detection node using Flir-Lepton sensor.</description>
 
   <maintainer email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</maintainer>
 

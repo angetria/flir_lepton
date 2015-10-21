@@ -19,6 +19,7 @@
   <exec_depend>flir_lepton</exec_depend>
   <exec_depend>flir_lepton_image_processing</exec_depend>
   <exec_depend>flir_lepton_ros_comm</exec_depend>
+  <exec_depend>flir_lepton_launchers</exec_depend>
 
   <export>
     <metapackage />

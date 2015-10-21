@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>flir_lepton_launchers</name>
+  <version>0.1.0</version>
+  <description>Contains launchers for bring-up.</description>
+
+  <maintainer email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</maintainer>
+
+  <license>BSD</license>
+
+  <author email="aggelostriadafillidis@gmail.com"> Angelos Triantafyllidis </author>
+  <author email="klpanagi@gmail.com"> Konstantinos Panayiotou</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>flir_lepton</exec_depend>
+  <exec_depend>flir_lepton_image_processing</exec_depend>
+
+  <export>
+
+  </export>
+
+</package>
