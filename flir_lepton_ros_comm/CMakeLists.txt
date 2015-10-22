@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files(DIRECTORY msg
   FILES
-  FlirLeptonMsg.msg
+  flir_lepton_sensor/TemperaturesMsg.msg
   CandidateRoiMsg.msg
   CandidateRoisVectorMsg.msg
   GeneralAlertInfo.msg

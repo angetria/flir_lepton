@@ -39,8 +39,8 @@
  * *
  * *********************************************************************/
 
-#ifndef FLIR_LEPTON_FLIR_LEPTON_H
-#define FLIR_LEPTON_FLIR_LEPTON_H
+#ifndef FLIR_LEPTON_FLIR_LEPTON_HW_IFACE_H
+#define FLIR_LEPTON_FLIR_LEPTON_HW_IFACE_H
 
 /* ---< Containers >--- */
 #include <vector>
@@ -55,18 +55,17 @@
 /* ---< ROS related >--- */
 #include "ros/ros.h"
 #include "sensor_msgs/Image.h"
-#include "flir_lepton_ros_comm/FlirLeptonMsg.h"
+#include "flir_lepton_ros_comm/TemperaturesMsg.h"
 /* --------------------- */
 
-namespace flir_lepton_rpi2
-{
 namespace flir_lepton
 {
-  class FlirLeptonHardwareInterface
+  class FlirLeptonHWIface
   {
     private:
       struct FlirSpi
       {
+        std::string devicePort;
         uint8_t mode;
         uint8_t bits;
         uint32_t speed;
@@ -83,22 +82,21 @@ namespace flir_lepton
 
       /* ------< Published Topics >------ */
       std::string image_topic_;
-      std::string fusedMsg_topic_;
+      std::string temper_topic_;
       /* -------------------------------- */
 
       /* -------< ROS Publishers >------- */
       ros::Publisher image_publisher_;
-      ros::Publisher fusedMsg_publisher_;
+      ros::Publisher temper_publisher_;
       /* -------------------------------- */
       ros::NodeHandle nh_;
       ros::Time now_;
 
-      std::string device_;
       int statusValue_;
       FlirSpi flirSpi_;  // SPI interface container
 
-      uint8_t* frame_buffer_;
-      std::vector<uint16_t> thermal_signals_;  // Raw signal values
+      uint8_t* rawBuffer_;
+      std::vector<uint16_t> frameData_;  // Raw signal values
 
       /* -----< Thermal Image Characteristics >----- */
       std::string frame_id_;
@@ -108,10 +106,8 @@ namespace flir_lepton
       /* ------------------------------------------- */
 
       /* ------< Scene Temperature Values >--------- */
-
       std::vector<float> scene_tempers_;
       float scene_avgTemper_;
-
       /* ------------------------------------------- */
 
       // Raw sensor signal values to absolute thermal values map
@@ -149,15 +145,13 @@ namespace flir_lepton
       * @brief Exports thermal signal values from an obtained VoSPI frame
       */
       void processFrame(
-        uint8_t* frame_buffer, std::vector<uint16_t>* thermal_signals,
-        uint16_t* minValue, uint16_t* maxValue);
+        uint8_t* frame_buffer, std::vector<uint16_t>& rawData,
+        uint16_t& minValue, uint16_t& maxValue);
 
 
-      /*!
-      * @brief Fills Thermal fused ros message
-      */
-      void craftFusedMsg(const std::vector<uint16_t>& thermal_signals,
-        flir_lepton_ros_comm::FlirLeptonMsg* flirMsg, uint16_t minValue,
+
+      void craftTemperMsg(const std::vector<uint16_t>& rawData,
+        flir_lepton_ros_comm::TemperaturesMsg& temperMsg, uint16_t minValue,
         uint16_t maxValue);
 
 
@@ -165,7 +159,7 @@ namespace flir_lepton
        * @brief Fills Thermal image ros message
        */
       void craftImageMsg(
-        const std::vector<uint16_t>& thermal_signals,
+        const std::vector<uint16_t>& rawData,
         sensor_msgs::Image* thermalImage, uint16_t minValue,
         uint16_t maxValue);
 
@@ -175,13 +169,13 @@ namespace flir_lepton
       /*!
       * @brief Default constructor
       */
-      FlirLeptonHardwareInterface(const std::string& ns);
+      FlirLeptonHWIface(const std::string& ns);
 
 
       /*!
       * @brief Default Destructor
       */
-      virtual ~FlirLeptonHardwareInterface();
+      virtual ~FlirLeptonHWIface();
 
 
       /*!
@@ -192,7 +186,6 @@ namespace flir_lepton
 
   };
 
-}  // namespace flir_lepton
 }  // namespace flir_lepton_rpi2
 
 #endif  // FLIR_LEPTON_FLIR_LEPTON_H

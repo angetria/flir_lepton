@@ -39,8 +39,8 @@
  *
  * *********************************************************************/
 
-#ifndef FLIR_LEPTON_UTILS_UTILS_H
-#define FLIR_LEPTON_UTILS_UTILS_H
+#ifndef FLIR_LEPTON_UTILS_H
+#define FLIR_LEPTON_UTILS_H
 
 #include <boost/utility.hpp>
 #include <stdint.h>
@@ -48,8 +48,6 @@
 #include <cstring>
 
 
-namespace flir_lepton_rpi2
-{
 namespace flir_lepton
 {
   class Utils : private boost::noncopyable
@@ -79,9 +77,12 @@ namespace flir_lepton
        */
       static std::map<uint16_t, float> loadThermalCalibMap(
         const std::string& calibFileUri);
+
+      static std::map<uint16_t, float> temperLUT(void);
+
+      static void temperLUT(std::map<uint16_t, float>& temperMap);
   };
 
-}  // namespace flir_lepton
 }  // namespace flir_lepton_rpi2
 
 #endif

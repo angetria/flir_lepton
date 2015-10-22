@@ -39,8 +39,8 @@
  * *
  * *********************************************************************/
 
-#include "flir_lepton/flir_lepton.h"
-#include "flir_lepton/utils.h"
+#include "flir_lepton_hw_iface.h"
+#include "utils/utils.h"
 
 /* ---< SPI interface related >--- */
 #include <fcntl.h>
@@ -48,49 +48,58 @@
 #include <unistd.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include <ros/package.h>
 /* ------------------------------- */
 
 
-namespace flir_lepton_rpi2
-{
 namespace flir_lepton
 {
-  FlirLeptonHardwareInterface::FlirLeptonHardwareInterface(
+  FlirLeptonHWIface::FlirLeptonHWIface(
     const std::string& ns):
     nh_(ns),
-    device_("/dev/spidev0.0"),
     image_encoding_("mono8"),
     MAX_RESETS_ERROR(750),
     MAX_RESTART_ATTEMPS_EXIT(5)
   {
     loadParameters();
-    frame_buffer_ = flirSpi_.makeFrameBuffer();
+    rawBuffer_ = flirSpi_.makeFrameBuffer();
 
     calibMap_ = Utils::loadThermalCalibMap(calibFileUri_);
 
     openDevice();
-    fusedMsg_publisher_ = nh_.advertise<flir_lepton_ros_comm::FlirLeptonMsg>(
-      fusedMsg_topic_, 1);
+    temper_publisher_ = nh_.advertise<flir_lepton_ros_comm::TemperaturesMsg>(
+      temper_topic_, 1);
     image_publisher_ = nh_.advertise<sensor_msgs::Image>(image_topic_, 1);
   }
 
 
 
-  FlirLeptonHardwareInterface::~FlirLeptonHardwareInterface()
+  FlirLeptonHWIface::~FlirLeptonHWIface()
   {
     closeDevice();
-    delete[] frame_buffer_;
+    delete[] rawBuffer_;
   }
 
 
 
-  void FlirLeptonHardwareInterface::loadParameters(void)
+  void FlirLeptonHWIface::loadParameters(void)
   {
     int param;
+    std::string calibFileName;
+
     /* ----------- Load Parameters ------------ */
-    nh_.param<std::string>("dataset/spline_interpolated_data", calibFileUri_,
-      "/home/pandora/pandora_ws/src/rpi_hardware_interface/data" \
-      "/flir_lepton/dataset_spline_interp.pandora");
+    // Load calibration dataset file name. Datasets are stored under the
+    // flir_lepton_auxiliary package, into the datasets directory.
+    // (flir_lepton_auxiliary/datasets)
+    nh_.param<std::string>("dataset_file_name", calibFileName,
+      "dataset_spline");
+    // Search for flir_lepton_auxiliary package absolute path, using rospack.
+    std::string datasetPath = ros::package::getPath("flir_lepton_auxiliary") +
+      "/datasets/";
+    calibFileUri_ = datasetPath + calibFileName;
+
+    ROS_INFO("Temperature calibration dataset file: [%s]",
+      calibFileUri_.c_str());
 
     nh_.param<std::string>("flir_urdf/camera_optical_frame", frame_id_,
       "/flir_optical_frame");
@@ -99,73 +108,73 @@ namespace flir_lepton
     nh_.param<int32_t>("thermal_image/width", param, 80);
     imageWidth_ = param;
     nh_.param<std::string>("published_topics/flir_image_topic", image_topic_,
-      "/rpi2/thermal/image");
-    nh_.param<std::string>("published_topics/flir_fused_topic",
-      fusedMsg_topic_, "/rpi2/thermal/fused_msg");
+      "/flir_lepton/image");
+    nh_.param<std::string>("published_topics/flir_temper_topic",
+      temper_topic_, "flir_lepton/temperatures");
     /* ----------------------------------------- */
 
     flirSpi_.configFlirSpi(nh_);
   }
 
 
-
-  void FlirLeptonHardwareInterface::FlirSpi::configFlirSpi(
+  void FlirLeptonHWIface::FlirSpi::configFlirSpi(
     const ros::NodeHandle& nh)
   {
     int param;
     mode = SPI_MODE_3;
-    nh.param<int32_t>("flir_spi/bits", param, 8);
+    nh.param<int32_t>("iface/bits", param, 8);
     bits = param;
-    nh.param<int32_t>("flir_spi/speed", param, 24000000);
+    nh.param<int32_t>("iface/speed", param, 16000000);
     speed = param;
-    nh.param<int32_t>("flir_spi/delay", param, 0);
+    nh.param<int32_t>("iface/delay", param, 0);
     delay = param;
-    nh.param<int32_t>("flir_spi/packet_size", param, 164);
+    nh.param<int32_t>("iface/packet_size", param, 164);
     packet_size = param;
-    nh.param<int32_t>("flir_spi/packets_per_frame", param, 60);
+    nh.param<int32_t>("iface/packets_per_frame", param, 60);
     packets_per_frame = param;
     packet_size_uint16 = packet_size / 2;
     frame_size_uint16 = packet_size_uint16 * packets_per_frame;
+    nh.param<std::string>("iface/device_port", devicePort, "/dev/spidev0.0");
   }
 
 
 
-  uint8_t* FlirLeptonHardwareInterface::FlirSpi::makeFrameBuffer(void)
+  uint8_t* FlirLeptonHWIface::FlirSpi::makeFrameBuffer(void)
   {
     return new uint8_t[packet_size * packets_per_frame];
   }
 
 
 
-  void FlirLeptonHardwareInterface::run(void)
+  void FlirLeptonHWIface::run(void)
   {
-    readFrame(&frame_buffer_);
+    readFrame(&rawBuffer_);
     now_ = ros::Time::now();
-    thermal_signals_.clear();
+    frameData_.clear();
     uint16_t minValue, maxValue;
-    processFrame(frame_buffer_, &thermal_signals_, &minValue, &maxValue);
+    processFrame(rawBuffer_, frameData_, minValue, maxValue);
 
     // Sensor_msgs/Image
     sensor_msgs::Image thermalImage;
 
     // Custom message
-    flir_lepton_ros_comm::FlirLeptonMsg fusedMsg;
+    flir_lepton_ros_comm::TemperaturesMsg temperMsg;
 
     // Create the Image message
-    craftImageMsg(thermal_signals_, &thermalImage, minValue, maxValue);
+    craftImageMsg(frameData_, &thermalImage, minValue, maxValue);
 
     // Create the custom message
-    craftFusedMsg(thermal_signals_, &fusedMsg, minValue, maxValue);
+    craftTemperMsg(frameData_, temperMsg, minValue, maxValue);
 
     /* --------< Publish Messages >-------- */
     image_publisher_.publish(thermalImage);
-    fusedMsg_publisher_.publish(fusedMsg);
+    temper_publisher_.publish(temperMsg);
     /* ------------------------------------ */
   }
 
 
 
-  void FlirLeptonHardwareInterface::readFrame(uint8_t** frame_buffer)
+  void FlirLeptonHWIface::readFrame(uint8_t** frame_buffer)
   {
     int packet_number = -1;
     int resets = 0;
@@ -210,14 +219,14 @@ namespace flir_lepton
 
 
 
-  void FlirLeptonHardwareInterface::processFrame(
-    uint8_t* frame_buffer, std::vector<uint16_t>* thermal_signals,
-    uint16_t* minValue, uint16_t* maxValue)
+  void FlirLeptonHWIface::processFrame(
+    uint8_t* frame_buffer, std::vector<uint16_t>& rawData,
+    uint16_t& minValue, uint16_t& maxValue)
   {
     int row, column;
     uint16_t value;
-    *minValue = -1;
-    *maxValue = 0;
+    minValue = -1;
+    maxValue = 0;
     uint16_t* frame_buffer_16 = (uint16_t*) frame_buffer;
     uint16_t temp;
     uint16_t diff;
@@ -233,16 +242,16 @@ namespace flir_lepton
       frame_buffer[i*2] = frame_buffer[i*2+1];
       frame_buffer[i*2+1] = temp;
       value = frame_buffer_16[i];
-      thermal_signals->push_back(value);
-      if (value > *maxValue) *maxValue = value;
-      if (value < *minValue) *minValue = value;
+      rawData.push_back(value);
+      if (value > maxValue) maxValue = value;
+      if (value < minValue) minValue = value;
     }
   }
 
 
 
-  void FlirLeptonHardwareInterface::craftImageMsg(
-    const std::vector<uint16_t>& thermal_signals,
+  void FlirLeptonHWIface::craftImageMsg(
+    const std::vector<uint16_t>& rawData,
     sensor_msgs::Image* thermalImage, uint16_t minValue, uint16_t maxValue)
   {
     thermalImage->header.stamp = now_;
@@ -256,53 +265,50 @@ namespace flir_lepton
     for (int i = 0; i < imageWidth_; i++) {
       for (int j = 0; j < imageHeight_; j++) {
         uint8_t value = Utils::signalToImageValue(
-          thermal_signals.at(i * imageHeight_ + j), minValue, maxValue);
+          rawData.at(i * imageHeight_ + j), minValue, maxValue);
         thermalImage->data.push_back(value);
       }
     }
   }
 
 
-
-  void FlirLeptonHardwareInterface::craftFusedMsg(
-    const std::vector<uint16_t>& thermal_signals,
-    flir_lepton_ros_comm::FlirLeptonMsg* flirMsg, uint16_t minValue, uint16_t maxValue)
+  void FlirLeptonHWIface::craftTemperMsg(
+    const std::vector<uint16_t>& rawData,
+    flir_lepton_ros_comm::TemperaturesMsg& temperMsg, uint16_t minValue,
+    uint16_t maxValue)
   {
-    float temperSum = 0;
-    flirMsg->header.stamp = now_;
-    flirMsg->header.frame_id = frame_id_;
+     float temperSum = 0.0;
+     temperMsg.header.stamp = now_;
+     temperMsg.header.frame_id = frame_id_;
+     scene_tempers_.clear();
 
-    craftImageMsg(thermal_signals, &flirMsg->thermalImage, minValue, maxValue);
+     // Vector containing the temperatures in image after calibration and vector
+     // with signal raw values
+     for (int i = 0; i < imageHeight_; i++) {
+       for (int j = 0; j < imageWidth_; j++) {
 
-    scene_tempers_.clear();
-    // Vector containing the temperatures in image after calibration and vector
-    // with signal raw values
-    for (int i = 0; i < imageHeight_; i++) {
-      for (int j = 0; j < imageWidth_; j++) {
-        flirMsg->rawValues.data.push_back(thermal_signals.at(
-            i * imageWidth_ + j));
+         float value = Utils::signalToTemperature(
+           rawData.at(i * imageWidth_ + j), calibMap_);
+         temperMsg.temperatures.data.push_back(value);
+         scene_tempers_.push_back(value);
+         temperSum += value;
+       }
+     }
 
-        float value = Utils::signalToTemperature(
-          thermal_signals.at(i * imageWidth_ + j), calibMap_);
-        flirMsg->temperatures.data.push_back(value);
-        scene_tempers_.push_back(value);
-        temperSum += value;
-      }
-    }
-    scene_avgTemper_ = temperSum / (imageHeight_ * imageWidth_);
+     scene_avgTemper_ = temperSum / (imageHeight_ * imageWidth_);
 
-    flirMsg->temperatures.layout.dim.push_back(std_msgs::MultiArrayDimension());
-    flirMsg->temperatures.layout.dim[0].size = 60;
+     temperMsg.temperatures.layout.dim.push_back(
+       std_msgs::MultiArrayDimension());
+     temperMsg.temperatures.layout.dim[0].size = 60;
 
-    flirMsg->temperatures.layout.dim.push_back(std_msgs::MultiArrayDimension());
-    flirMsg->temperatures.layout.dim[1].size = 80;
+     temperMsg.temperatures.layout.dim.push_back(std_msgs::MultiArrayDimension());
+     temperMsg.temperatures.layout.dim[1].size = 80;
   }
 
 
-
-  void FlirLeptonHardwareInterface::openDevice(void)
+  void FlirLeptonHWIface::openDevice(void)
   {
-    flirSpi_.handler = open(device_.c_str(), O_RDWR);
+    flirSpi_.handler = open(flirSpi_.devicePort.c_str(), O_RDWR);
     if (flirSpi_.handler < 0)
     {
       ROS_FATAL("[Flir-Lepton]: Can't open SPI device");
@@ -351,11 +357,14 @@ namespace flir_lepton
       exit(1);
     }
     ROS_WARN("[Flir-Lepton]: Opened SPI Port");
+
+    //ROS_INFO("[SPI Device information]:");
+    //std::cout << "  * Device Port: " << flirSpi_.devicePort << std::endl;
   }
 
 
 
-  void FlirLeptonHardwareInterface::closeDevice(void)
+  void FlirLeptonHWIface::closeDevice(void)
   {
     statusValue_ = close(flirSpi_.handler);
     if (statusValue_ < 0)
@@ -366,5 +375,4 @@ namespace flir_lepton
     ROS_WARN("[Flir-Lepton]: Closed SPI Port");
   }
 
-}  // namespace flir_lepton
 }  // namespace flir_lepton_rpi2

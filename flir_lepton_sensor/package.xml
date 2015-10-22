@@ -1,0 +1,29 @@
+<package format="2">
+  <name>flir_lepton_sensor</name>
+  <version>0.0.0</version>
+  <description>This package containes sources for communicating with the FlirLepton LWIR sensor</description>
+
+  <maintainer email="klpanagi@gmail.com">Konstantinos Panayiotou</maintainer>
+
+  <license>BSD</license>
+
+  <url type="bugtracker">https://github.com/klpanagi/rpi_hardware_interface/issues</url>
+  <url type="repository">https://github.com/klpanagi/rpi_hardware_interface.git</url>
+
+  <author email="klpanagi@gmail.com">Konstantinos Panayiotou</author>
+  <author email="tsirif@gmail.com">Tsirigotis Christos</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>flir_lepton_ros_comm</depend>
+
+  <export>
+
+  </export>
+
+</package>

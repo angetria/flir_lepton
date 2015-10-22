@@ -1,7 +1,7 @@
 <package format="2">
-  <name>flir_lepton</name>
+  <name>flir_lepton_auxiliary</name>
   <version>0.0.0</version>
-  <description>The flir_lepton package</description>
+  <description>Contains auxiliary files used by the flir_lepton_rpi2 package</description>
 
   <maintainer email="klpanagi@gmail.com">Konstantinos Panayiotou</maintainer>
 
@@ -14,12 +14,6 @@
   <author email="tsirif@gmail.com">Tsirigotis Christos</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <exec_depend>message_runtime</exec_depend>
-
-  <depend>roscpp</depend>
-  <depend>std_msgs</depend>
-  <depend>sensor_msgs</depend>
-  <depend>flir_lepton_ros_comm</depend>
 
   <export>
 

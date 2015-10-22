@@ -39,13 +39,12 @@
  *
  * *********************************************************************/
 
-#include "flir_lepton/utils.h"
+#include "utils/utils.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <ros/console.h>
 
-namespace flir_lepton_rpi2
-{
 namespace flir_lepton
 {
   uint8_t Utils::signalToImageValue(
@@ -82,6 +81,15 @@ namespace flir_lepton
   {
     /* ---< Open a file input stream to read the dataset >--- */
     std::ifstream file(calibFileUri.c_str());
+
+    // Evaluate existance of given filepath
+    if(! file.good())
+    {
+      ROS_FATAL("Temperature calibration dataset file [%s] does not exist!",
+        calibFileUri.c_str());
+      file.close();
+      exit(1);
+    }
     std::string line;
 
     std::map<uint16_t, float> calibMap;
@@ -95,13 +103,13 @@ namespace flir_lepton
 
     // If counter even -> read keyword of map from file
     // If counter odd -> read value of map from file
-    int counter =2;
+    int counter = 2;
 
     if(file.is_open())
     {
       while(std::getline(file, line))
       {
-        if(counter % 2 == 0)
+        if((counter % 2) == 0)
         {
           // Read the keyword of map and convert it to uint16_t
           keyword_s = line;
@@ -117,7 +125,6 @@ namespace flir_lepton
         else
         {
           value_s = line;
-
           std::istringstream ss(value_s);
           // Convert string to float for map
           ss >> value;
@@ -142,5 +149,17 @@ namespace flir_lepton
     return calibMap;
   }
 
-}  // namespace flir_lepton
+
+  std::map<uint16_t, float> Utils::temperLUT(void)
+  {
+    
+  }
+
+  
+  void Utils::temperLUT(std::map<uint16_t, float>& temperMap)
+  {
+  
+  }
+
+
 }  // namespace flir_lepton_rpi2

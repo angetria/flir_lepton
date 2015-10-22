@@ -40,16 +40,16 @@
 
 #include "ros/ros.h"
 
-#include "flir_lepton/flir_lepton.h"
+#include "flir_lepton_hw_iface.h"
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "flir_lepton_node");
-  flir_lepton_rpi2::flir_lepton::FlirLeptonHardwareInterface flirLepton("/flir_lepton");
+  ros::init(argc, argv, "flir_lepton_sensor_node");
+  flir_lepton::FlirLeptonHWIface flirLepton("/flir_lepton_sensor");
 
   int rate;
-  ros::NodeHandle("/flir_lepton").param<int>(
-      "interface_rate", rate, 27);
+  ros::NodeHandle("/flir_lepton_sensor").param<int>(
+      "frame_rate", rate, 27);
   ros::Rate loop_rate(rate);
 
   while(ros::ok())

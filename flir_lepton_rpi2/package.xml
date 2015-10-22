@@ -16,10 +16,11 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <exec_depend>flir_lepton</exec_depend>
+  <exec_depend>flir_lepton_sensor</exec_depend>
   <exec_depend>flir_lepton_image_processing</exec_depend>
   <exec_depend>flir_lepton_ros_comm</exec_depend>
   <exec_depend>flir_lepton_launchers</exec_depend>
+  <exec_depend>flir_lepton_auxiliary</exec_depend>
 
   <export>
     <metapackage />
