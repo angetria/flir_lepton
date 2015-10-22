@@ -1,7 +1,10 @@
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Changelog for package catkin
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package flir_lepton_sensor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.0.1 (2015-10-22)
--------------------
-* Removed absolute paths from source code (`#4 <https://github.com/angetria/flir_lepton/issues/4>`_)
+Forthcoming
+-----------
+* Initialized CHANGELOG.rst files
+* Changed metapackage name to flir_lepton -- platform independent
+* Refactored flir_lepton_sensor package + packaging
+* Contributors: Konstantinos Panayiotou
