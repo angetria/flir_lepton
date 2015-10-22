@@ -5,10 +5,9 @@
   <description>Flir Lepton ros communications</description>
 
   <maintainer email="klpanagi@gmail.com">Konstantinos Panayiotou</maintainer>
-  <maintainer email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</maintainer>
 
-  <author>Konstantinos Panayiotou</author>
-  <author>Angelos Triantafyllidis</author>
+  <author email="klpanagi@gmail.com">Konstantinos Panayiotou</author>
+  <author email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</author>
 
   <license>BSD</license>
 

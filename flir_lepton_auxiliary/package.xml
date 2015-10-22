@@ -1,6 +1,6 @@
 <package format="2">
   <name>flir_lepton_auxiliary</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>Contains auxiliary files used by the flir_lepton_rpi2 package</description>
 
   <maintainer email="klpanagi@gmail.com">Konstantinos Panayiotou</maintainer>
@@ -11,7 +11,7 @@
   <url type="repository">https://github.com/klpanagi/rpi_hardware_interface.git</url>
 
   <author email="klpanagi@gmail.com">Konstantinos Panayiotou</author>
-  <author email="tsirif@gmail.com">Tsirigotis Christos</author>
+  <author email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 

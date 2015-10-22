@@ -1,16 +1,15 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>flir_lepton_rpi2</name>
+  <name>flir_lepton</name>
   <version>0.0.1</version>
   <description>
-    Contains sources to interfere with Flir-Lepton LWIR camera under ROS-indigo
+    Contains sources for working with Flir-Lepton LWIR camera under ROS.
   </description>
 
   <maintainer email="klpanagi@gmail.com">Konstantinos Panayiotou</maintainer>
-  <maintainer email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</maintainer>
 
-  <author>Konstantinos Panayiotou</author>
-  <author>Angelos Triantafyllidis</author>
+  <author email="klpanagi@gmail.com">Konstantinos Panayiotou</author>
+  <author email="aggelostriadafillidis@gmail.com">Angelos Triantafyllidis</author>
 
   <license>BSD</license>
 
