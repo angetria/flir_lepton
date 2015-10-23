@@ -45,7 +45,7 @@
 /**
   @brief The namespaces for this package
  **/
-namespace flir_lepton_rpi2
+namespace flir_lepton
 {
 namespace flir_lepton_image_processing
 {
@@ -237,6 +237,6 @@ namespace flir_lepton_image_processing
   };
 
 }  // namespace flir_lepton_image_processsing
-}  // namespace flir_lepton_rpi2
+}  // namespace flir_lepton
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_UTILS_THERMAL_ROIS_CONVEYOR_H

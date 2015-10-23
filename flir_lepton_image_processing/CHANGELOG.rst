@@ -12,4 +12,4 @@ Forthcoming
 * Refactor namespaces in image_processing package
 * Fixed config parameters on loading thermal mode
 * Integrated hardware_interface and image_processing
-* Contributors: Aggelos triadafillidis, Konstantinos Panayiotou
+* Contributors: Angelos Triantafyllidis, Konstantinos Panayiotou

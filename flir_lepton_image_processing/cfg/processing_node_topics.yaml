@@ -1,7 +1,10 @@
 subscribed_topics:
-  thermal_image_topic: /rpi2/thermal/fused
+  flir_image_topic: /flir_lepton/image
+  flir_temper_topic: /flir_lepton/temperatures
 
 published_topics:
-  candidate_rois_topic: /rpi/thermal_rois_body
-  candidate_rois_alert_topic: /rpi/thermal_rois_info
+  # The outline, center and rectangle of the thermal rois found
+  candidate_rois_topic: /flir_lepton_image_proc/thermal_rois_body
+  # The yaw, pitch, probability and temperature of the thermal rois found
+  candidate_rois_alert_topic: /flir_lepton_image_proc/thermal_rois_info
 

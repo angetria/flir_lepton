@@ -41,7 +41,7 @@
 /**
   @brief The namespaces for this package
  **/
-namespace flir_lepton_rpi2
+namespace flir_lepton
 {
 namespace flir_lepton_image_processing
 {
@@ -181,4 +181,4 @@ namespace flir_lepton_image_processing
   int Parameters::Outline::minimum_curve_points = 50;
 
 }  // namespace flir_lepton_image_processing
-}  // namespace flir_lepton_rpi2
+}  // namespace flir_lepton

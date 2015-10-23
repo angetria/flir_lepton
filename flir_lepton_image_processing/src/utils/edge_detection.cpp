@@ -41,7 +41,7 @@
 /**
   @brief The namespaces for this package
  **/
-namespace flir_lepton_rpi2
+namespace flir_lepton
 {
 namespace flir_lepton_image_processing
 {
@@ -1449,4 +1449,4 @@ namespace flir_lepton_image_processing
   }
 
 }  // namespace flir_lepton_image_processing
-}  // namespace flir_lepton_rpi2
+}  // namespace flir_lepton

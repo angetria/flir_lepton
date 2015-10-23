@@ -9,4 +9,4 @@ Forthcoming
 * Minor changes in scripts
 * minor typo changes
 * dataset loading
-* Contributors: Aggelos triadafillidis, Konstantinos Panayiotou
+* Contributors: Angelos Triantafyllidis, Konstantinos Panayiotou

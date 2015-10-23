@@ -45,13 +45,13 @@
 #include "flir_lepton_ros_comm/GeneralAlertInfo.h"
 #include "flir_lepton_ros_comm/ThermalAlert.h"
 #include "flir_lepton_ros_comm/ThermalAlertVector.h"
-#include "flir_lepton_ros_comm/FlirLeptonMsg.h"
+#include "flir_lepton_ros_comm/TemperaturesMsg.h"
 #include "std_msgs/Float32MultiArray.h"
 
 /**
   @brief The namespaces for this package
  **/
-namespace flir_lepton_rpi2
+namespace flir_lepton
 {
 namespace flir_lepton_image_processing
 {
@@ -66,11 +66,17 @@ namespace flir_lepton_image_processing
       // The ROS node handle.
       ros::NodeHandle nodeHandle_;
 
-      // Subscriber of Flir Lepton camera info.
+      // Subscriber of Flir Lepton camera sensor image.
       ros::Subscriber thermalImageSubscriber_;
 
       // The name of the topic where the thermal image is acquired from.
       std::string thermalImageTopic_;
+
+      // Subscriber of Flir Lepton camera calibrated temperature image.
+      ros::Subscriber temperatureImageSubscriber_;
+
+      // The name of the topic where the temperature image is acquired from.
+      std::string temperatureImageTopic_;
 
       // Ros publisher for the candidate Rois found by process node.
       // Includes keypoints, outline and bounding box
@@ -81,7 +87,7 @@ namespace flir_lepton_image_processing
       std::string candidateRoisTopic_;
 
       // Ros publisher for the candidate Rois Alert message found by process node.
-      // Includes GeneralAlertInfo and temperatures
+      // Includes flir_lepton_ros_comm/GeneralAlertInfo and temperatures
       ros::Publisher candidateRoisAlertPublisher_;
 
       // The name of the topic where the candidate Rois Alert message that the
@@ -97,15 +103,34 @@ namespace flir_lepton_image_processing
        ::CallbackType f;
 
       /**
-        @brief Callback for the thermal image received by the camera.
-        The thermal image message is unpacked in a cv::Mat image.
-        Thermal rois are then located inside this image.
-        @param msg [const flir_lepton_ros_comm::FlirLeptonMsg&]
+        @brief Callback for the calibrated temperature image received by
+        flir-lepton camera. The temperature image message is unpacked in
+        a cv::Mat image. Thermal rois are then located inside this image.
+        @param msg [const flir_lepton_ros_comm::TemperaturesMsg&]
         The thermal image message
         @return void
        **/
+      void inputTemperatureImageCallback(
+        const flir_lepton_ros_comm::TemperaturesMsg& msg);
+
+      /**
+        @brief Callback for the thermal sensor image received by flir-lepton
+        camera. The thermal image message is unpacked in a cv::Mat image.
+        Thermal rois are then located inside this image.
+        @param msg [const sensor_msgs::Image&] The thermal sensor image message
+        @return void
+       **/
       void inputThermalImageCallback(
-        const flir_lepton_ros_comm::FlirLeptonMsg& msg);
+        const sensor_msgs::Image& msg);
+
+      /**
+        @brief After the right callback selection (temperature or sensor image),
+        the process continues with the input cv::Mat.
+        @param thermalImage [const cv::Mat&] The cv::Mat to be processed.
+        @return void
+       **/
+      void startProcess(
+        const cv::Mat& thermalImage);
 
       /**
         @brief Acquire the names of topics which the process node will be having
@@ -155,6 +180,6 @@ namespace flir_lepton_image_processing
   };
 
 }  // namespace flir_lepton_image_processing
-}  // namespace flir_lepton_rpi2
+}  // namespace flir_lepton
 
 #endif  // FLIR_LEPTON_IMAGE_PROCESSING_PROCESSING_NODE_PROCESS_H

@@ -12,4 +12,4 @@ Forthcoming
 * minor typo changes
 * dataset loading
 * Integrated hardware_interface and image_processing
-* Contributors: Aggelos triadafillidis, Konstantinos Panayiotou
+* Contributors: Angelos Triantafyllidis, Konstantinos Panayiotou

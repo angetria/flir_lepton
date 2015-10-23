@@ -10,4 +10,4 @@ Forthcoming
 * Move all messages into flir_lepton_ros_comm package
 * minor typo changes
 * Integrated hardware_interface and image_processing
-* Contributors: Aggelos triadafillidis, Konstantinos Panayiotou
+* Contributors: Angelos Triantafyllidis, Konstantinos Panayiotou

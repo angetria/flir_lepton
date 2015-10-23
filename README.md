@@ -11,4 +11,4 @@ ROS Package to interfear with Flir-Lepton LWIR sensor
 ## Contributors
 
 - Konstaninos Panayiotou, **[klpanagi@gmail.com]**
-- Aggelos Triantafyllidis, **[angetria@gmail.com]**
+- Angelos Triantafyllidis, **[aggelostriadafillidis@gmail.com]**

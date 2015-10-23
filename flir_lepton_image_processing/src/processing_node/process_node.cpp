@@ -46,7 +46,7 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "process_node");
-  flir_lepton_rpi2::flir_lepton_image_processing::Process process;
+  flir_lepton::flir_lepton_image_processing::Process process;
   ros::spin();
   return 0;
 }

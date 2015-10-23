@@ -1,7 +1,7 @@
 <launch>
 
   <!-- Launch the flir_lepton package -->
-  <include file="$(find flir_lepton)/launch/flir_lepton.launch" />
+  <include file="$(find flir_lepton_sensor)/launch/flir_lepton_sensor.launch" />
 
   <!-- Launch the flir_lepton_image_processing package -->
   <include file="$(find flir_lepton_image_processing)/launch/flir_lepton_image_processing.launch" />
