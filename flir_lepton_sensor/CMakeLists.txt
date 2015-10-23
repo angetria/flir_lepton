@@ -32,7 +32,7 @@ include_directories(
 ################################################################################
 
 add_library(${PROJECT_NAME}_utils_lib
-  src/utils.cpp
+  src/flir_lepton_utils.cpp
 )
 
 add_library(${PROJECT_NAME}_lib
@@ -46,8 +46,9 @@ target_link_libraries(${PROJECT_NAME}_lib
 
 add_dependencies(${PROJECT_NAME}_lib ${catkin_EXPORTED_TARGETS})
 
+
 ################################################################################
-#                  Flir Lepton Hardware Interface Executable                   #
+#                  Flir Lepton Sensor Executable                               #
 ################################################################################
 
 add_executable(${PROJECT_NAME}_node

@@ -58,134 +58,138 @@
 #include "flir_lepton_ros_comm/TemperaturesMsg.h"
 /* --------------------- */
 
+
 namespace flir_lepton
 {
-  class FlirLeptonHWIface
+  namespace flir_lepton_sensor
   {
-    private:
-      struct FlirSpi
-      {
-        std::string devicePort;
-        uint8_t mode;
-        uint8_t bits;
-        uint32_t speed;
-        uint16_t delay;
-        uint16_t packet_size;
-        uint16_t packets_per_frame;
-        uint16_t packet_size_uint16;
-        uint16_t frame_size_uint16;
-        int handler;
+    class FlirLeptonHWIface
+    {
+      private:
+        struct FlirSpi
+        {
+          std::string devicePort;
+          uint8_t mode;
+          uint8_t bits;
+          uint32_t speed;
+          uint16_t delay;
+          uint16_t packet_size;
+          uint16_t packets_per_frame;
+          uint16_t packet_size_uint16;
+          uint16_t frame_size_uint16;
+          int handler;
 
-        void configFlirSpi(const ros::NodeHandle& nh);
-        uint8_t* makeFrameBuffer(void);
-      };
+          void configFlirSpi(const ros::NodeHandle& nh);
+          uint8_t* makeFrameBuffer(void);
+        };
 
-      /* ------< Published Topics >------ */
-      std::string image_topic_;
-      std::string temper_topic_;
-      /* -------------------------------- */
+        /* ------< Published Topics >------ */
+        std::string image_topic_;
+        std::string temper_topic_;
+        /* -------------------------------- */
 
-      /* -------< ROS Publishers >------- */
-      ros::Publisher image_publisher_;
-      ros::Publisher temper_publisher_;
-      /* -------------------------------- */
-      ros::NodeHandle nh_;
-      ros::Time now_;
+        /* -------< ROS Publishers >------- */
+        ros::Publisher image_publisher_;
+        ros::Publisher temper_publisher_;
+        /* -------------------------------- */
+        ros::NodeHandle nh_;
+        ros::Time now_;
 
-      int statusValue_;
-      FlirSpi flirSpi_;  // SPI interface container
+        int statusValue_;
+        FlirSpi flirSpi_;  // SPI interface container
 
-      uint8_t* rawBuffer_;
-      std::vector<uint16_t> frameData_;  // Raw signal values
+        uint8_t* rawBuffer_;
+        std::vector<uint16_t> frameData_;  // Raw signal values
 
-      /* -----< Thermal Image Characteristics >----- */
-      std::string frame_id_;
-      std::string image_encoding_;
-      uint16_t imageHeight_;
-      uint16_t imageWidth_;
-      /* ------------------------------------------- */
+        /* -----< Thermal Image Characteristics >----- */
+        std::string frame_id_;
+        std::string image_encoding_;
+        uint16_t imageHeight_;
+        uint16_t imageWidth_;
+        /* ------------------------------------------- */
 
-      /* ------< Scene Temperature Values >--------- */
-      std::vector<float> scene_tempers_;
-      float scene_avgTemper_;
-      /* ------------------------------------------- */
+        /* ------< Scene Temperature Values >--------- */
+        std::vector<float> scene_tempers_;
+        float scene_avgTemper_;
+        /* ------------------------------------------- */
 
-      // Raw sensor signal values to absolute thermal values map
-      std::map<uint16_t, float> calibMap_;
-      std::string calibFileUri_;
+        // Raw sensor signal values to absolute thermal values map
+        std::map<uint16_t, float> calibMap_;
+        std::string calibFileUri_;
 
-      int MAX_RESTART_ATTEMPS_EXIT;
-      int MAX_RESETS_ERROR;
-
-
-      /*!
-       * @brief Loads parameters from parameter server
-       */
-      void loadParameters(void);
-
-      /*!
-      * @brief Opens SPI device port for communication with flir lepton camera
-      */
-      void openDevice(void);
+        int MAX_RESTART_ATTEMPS_EXIT;
+        int MAX_RESETS_ERROR;
 
 
-      /*!
-      * @brief Closes the SPI device communication port
-      */
-      void closeDevice(void);
+        /*!
+         * @brief Loads parameters from parameter server
+         */
+        void loadParameters(void);
+
+        /*!
+         * @brief Opens SPI device port for communication with flir lepton camera
+         */
+        void openDevice(void);
 
 
-      /*!
-      * @brief Reads a frame from flir lepton thermal camera
-      */
-      void readFrame(uint8_t** frame_buffer);
+        /*!
+         * @brief Closes the SPI device communication port
+         */
+        void closeDevice(void);
 
 
-      /*!
-      * @brief Exports thermal signal values from an obtained VoSPI frame
-      */
-      void processFrame(
-        uint8_t* frame_buffer, std::vector<uint16_t>& rawData,
-        uint16_t& minValue, uint16_t& maxValue);
+        /*!
+         * @brief Reads a frame from flir lepton thermal camera
+         */
+        void readFrame(uint8_t** frame_buffer);
+
+
+        /*!
+         * @brief Exports thermal signal values from an obtained VoSPI frame
+         */
+        void processFrame(
+          uint8_t* frame_buffer, std::vector<uint16_t>& rawData,
+          uint16_t& minValue, uint16_t& maxValue);
 
 
 
-      void craftTemperMsg(const std::vector<uint16_t>& rawData,
-        flir_lepton_ros_comm::TemperaturesMsg& temperMsg, uint16_t minValue,
-        uint16_t maxValue);
+        void craftTemperMsg(const std::vector<uint16_t>& rawData,
+          flir_lepton_ros_comm::TemperaturesMsg& temperMsg, uint16_t minValue,
+          uint16_t maxValue);
 
 
-      /*!
-       * @brief Fills Thermal image ros message
-       */
-      void craftImageMsg(
-        const std::vector<uint16_t>& rawData,
-        sensor_msgs::Image* thermalImage, uint16_t minValue,
-        uint16_t maxValue);
+        /*!
+         * @brief Fills Thermal image ros message
+         */
+        void craftImageMsg(
+          const std::vector<uint16_t>& rawData,
+          sensor_msgs::Image* thermalImage, uint16_t minValue,
+          uint16_t maxValue);
 
 
-    public:
+      public:
 
-      /*!
-      * @brief Default constructor
-      */
-      FlirLeptonHWIface(const std::string& ns);
-
-
-      /*!
-      * @brief Default Destructor
-      */
-      virtual ~FlirLeptonHWIface();
+        /*!
+         * @brief Default constructor
+         */
+        FlirLeptonHWIface(const std::string& ns);
 
 
-      /*!
-      * @brief Reads a thermal scene frame and publishes the image
-      *  on the relevant topic
-      */
-      void run(void);
+        /*!
+         * @brief Default Destructor
+         */
+        virtual ~FlirLeptonHWIface();
 
-  };
 
-}  // namespace flir_lepton_rpi2
+        /*!
+         * @brief Reads a thermal scene frame and publishes the image
+         *  on the relevant topic
+         */
+        void run(void);
+
+    };
+
+  }  // namespace flir_lepton_sensor
+}  // namespace flir_lepton
 
 #endif  // FLIR_LEPTON_FLIR_LEPTON_H
