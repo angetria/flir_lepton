@@ -297,17 +297,17 @@ namespace flir_lepton
       // with signal raw values
       for (int i = 0; i < imageHeight_; i++) {
         for (int j = 0; j < imageWidth_; j++) {
-          temperMsg.temperatures.data.push_back(
+          temperMsg.values.data.push_back(
             frameTempers_.at(i * imageHeight_ + j));
         }
       }
 
-      temperMsg.temperatures.layout.dim.push_back(
+      temperMsg.values.layout.dim.push_back(
         std_msgs::MultiArrayDimension());
-      temperMsg.temperatures.layout.dim[0].size = 60;
+      temperMsg.values.layout.dim[0].size = 60;
 
-      temperMsg.temperatures.layout.dim.push_back(std_msgs::MultiArrayDimension());
-      temperMsg.temperatures.layout.dim[1].size = 80;
+      temperMsg.values.layout.dim.push_back(std_msgs::MultiArrayDimension());
+      temperMsg.values.layout.dim[1].size = 80;
     }
 
 
