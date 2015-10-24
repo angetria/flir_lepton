@@ -20,7 +20,7 @@
   <depend>cv_bridge</depend>
   <!--<depend>image_transport</depend>-->
   <depend>dynamic_reconfigure</depend>
-  <depend>flir_lepton_ros_comm</depend>
+  <depend>flir_lepton_msgs</depend>
 
   <!-- Test Depends -->
   <test_depend>rostest</test_depend>

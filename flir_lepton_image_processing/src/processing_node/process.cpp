@@ -55,13 +55,9 @@ namespace flir_lepton_image_processing
     // transactionary affairs with
     getTopicNames();
 
-    // Subscribe to the sensor image published by flir lepton camera.
+    // Subscribe to the sensor/temperature image published by flir lepton camera.
     thermalImageSubscriber_ = nodeHandle_.subscribe(thermalImageTopic_, 1,
       &Process::inputThermalImageCallback, this);
-
-    // Subscribe to the calibrated temperature image published by flir lepton camera.
-    temperatureImageSubscriber_ = nodeHandle_.subscribe(temperatureImageTopic_, 1,
-      &Process::inputTemperatureImageCallback, this);
 
     // Advertise the candidate Rois found by the process node.
     candidateRoisPublisher_ = nodeHandle_.advertise
@@ -91,100 +87,72 @@ namespace flir_lepton_image_processing
   }
 
   /**
-    @brief Callback for the calibrated temperature image received by
-    flir-lepton camera. The temperature image message is unpacked in
-    a cv::Mat image. Thermal rois are then located inside this image.
-    @param msg [const flir_lepton_ros_comm::TemperaturesMsg&]
-    The thermal image message
-    @return void
+    @brief Based on the detection method that we select, return the appropriate
+    image to be further processed.The thermal image message is unpacked in
+    a cv::Mat image.
+    @param-[in] msg [const flir_lepton_msgs::FlirLeptonBatchMsg&]
+    The batch message from flir-lepton
+    @param[in] detection_method [const int] The detection method that we use
+    @return cv::Mat The image to be further processed.
    **/
-  void Process::inputTemperatureImageCallback(
-    const flir_lepton_ros_comm::TemperaturesMsg& msg)
+  cv::Mat Process::selectImageToProcess(
+    const flir_lepton_msgs::FlirLeptonBatchMsg& msg,
+    const int detection_method)
   {
     // Check the detection method
     // Detection method = 0 --> process the binary image acquired from temperatures
     // Detection method = 1 --> process the sensor image so this function returns
-    if (Parameters::Thermal::detection_method == 0)
+    switch (Parameters::Thermal::detection_method)
     {
-      cv::Mat temperatureImage;
-      // Obtain the thermal message and extract the temperature information.
-      // Convert this information to cv::Mat in order to be processed.
-      // It's format will be CV_8UC1
-      temperatureImage = MessageConversions::convertFloat32MultiArrayToMat
-        (msg.temperatures);
+      case 0:
+        cv::Mat thermalImage;
+        // Obtain the thermal message and extract the temperature information.
+        // Convert this information to cv::Mat in order to be processed.
+        // It's format will be CV_8UC1
+        thermalImage = MessageConversions::convertFloat32MultiArrayToMat
+          (msg.temperatures);
 
-      // Apply double threshold(up and down) in the temperature image.
-      // This way we get rid of unwanted temperature regions(black).
-      cv::inRange(
-        temperatureImage, cv::Scalar(Parameters::Thermal::low_temperature),
-        cv::Scalar(Parameters::Thermal::high_temperature), temperatureImage);
-
-      startProcess(temperatureImage);
+        // Apply double threshold(up and down) in the temperature image.
+        // This way we get rid of unwanted temperature regions(black).
+        cv::inRange(
+          thermalImage, cv::Scalar(Parameters::Thermal::low_temperature),
+          cv::Scalar(Parameters::Thermal::high_temperature), thermalImage);
+          break;
+      case 1:
+        cv::Mat thermalImage;
+        // Obtain the thermal image. Since the image is in a format of
+        // sensor_msgs::Image, it has to be transformed into a cv format in order
+        // to be processed. Its cv format will be CV_8UC1.
+        MessageConversions::extractImageFromMessage(msg.thermalImage, &thermalImage,
+          sensor_msgs::image_encodings::TYPE_8UC1);
+          break;
+      default:
+        ROS_ERROR_STREAM("Incorrect detection method, value = " <<
+          Parameters::Thermal::detection_method);
+        return;
     }
-    else if (Parameters::Thermal::detection_method == 1)
-    {
-      return;
-    }
-    else
-    {
-      ROS_ERROR_STREAM("Incorrect detection method, value = " <<
-        Parameters::Thermal::detection_method);
-      return;
-    }
-    return;
+    return thermalImage;
   }
 
   /**
-    @brief Callback for the thermal sensor image received by flir-lepton
-    camera. The thermal image message is unpacked in a cv::Mat image.
+    @brief Callback for the thermal sensor/temperature image received by
+    flir-lepton sensor.
     Thermal rois are then located inside this image.
-    @param msg [const sensor_msgs::Image&] The thermal sensor image message
+    @param msg [const flir_lepton_msgs::FlirLeptonBatchMsg&]
+    The input flir lepton message.
     @return void
    **/
   void Process::inputThermalImageCallback(
-    const sensor_msgs::Image& msg)
-  {
-    // Check the detection method
-    // Detection method = 0 --> process the binary image acquired from temperatures
-    // Detection method = 1 --> process the sensor image so this function returns
-    if (Parameters::Thermal::detection_method == 0)
-    {
-      return;
-    }
-    else if (Parameters::Thermal::detection_method == 1)
-    {
-      cv::Mat thermalImage;
-      // Obtain the thermal image. Since the image is in a format of
-      // sensor_msgs::Image, it has to be transformed into a cv format in order
-      // to be processed. Its cv format will be CV_8UC1.
-      MessageConversions::extractImageFromMessage(msg, &thermalImage,
-        sensor_msgs::image_encodings::TYPE_8UC1);
-
-      startProcess(thermalImage);
-    }
-    else
-    {
-      ROS_ERROR_STREAM("Incorrect detection method, value = " <<
-        Parameters::Thermal::detection_method);
-      return;
-    }
-    return;
-  }
-
-  /**
-    @brief After the right callback selection (temperature or sensor image),
-    the process continues with the input cv::Mat.
-    @param thermalImage [const cv::Mat&] The cv::Mat to be processed.
-    @return void
-   **/
-  void Process::startProcess(
-    const cv::Mat& thermalImage)
+    const flir_lepton_msgs::FlirLeptonBatchMsg& msg)
   {
     #ifdef DEBUG_TIME
     Timer::start("FlirLeptonImageCallback", "", true);
     #endif
 
     ROS_INFO_NAMED(PKG_NAME, "Process node callback");
+
+    cv::Mat thermalImage = selectImageToProcess(
+      msg, Parameters::Thermal::detection_method);
 
     RoisConveyor rois;
 
@@ -204,7 +172,7 @@ namespace flir_lepton_image_processing
       &rois, msg.temperatures, Parameters::Thermal::probability_method);
 
     // Create the candidate rois message
-    flir_lepton_ros_comm::CandidateRoisVectorMsg thermalCandidateRoisMsg;
+    flir_lepton_msgs::CandidateRoisVectorMsg thermalCandidateRoisMsg;
 
     // Pack information about rois found and the thermal image
     // inside a message.
@@ -215,9 +183,9 @@ namespace flir_lepton_image_processing
       msg.thermalImage);
 
     // Fill the thermal message to be sent
-    flir_lepton_ros_comm::ThermalAlert thermalMsg;
-    flir_lepton_ros_comm::ThermalAlertVector thermalVectorMsg;
-    flir_lepton_ros_comm::GeneralAlertInfo alert;
+    flir_lepton_msgs::ThermalAlert thermalMsg;
+    flir_lepton_msgs::ThermalAlertVector thermalVectorMsg;
+    flir_lepton_msgs::GeneralAlertInfo alert;
 
     // Finally find the yaw and pitch of each candidate roi found and
     // publish it if a roi exists.
@@ -293,7 +261,7 @@ namespace flir_lepton_image_processing
     std::string ns = nodeHandle_.getNamespace();
 
     // Read the name of the topic from where the process node acquires the
-    // thermal image and store it in a private member variable.
+    // thermal sensor/temperature image and store it in a private member variable.
     if (nodeHandle_.getParam(
         ns + "/thermal_camera_node/subscribed_topics/flir_image_topic",
         thermalImageTopic_))
@@ -305,21 +273,6 @@ namespace flir_lepton_image_processing
     {
       ROS_ERROR_NAMED(PKG_NAME,
         "[Process Node] Could not subscribe to Flir-Lepton image topic");
-    }
-
-    // Read the name of the topic from where the process node acquires the
-    // calibrated temperature image and store it in a private member variable.
-    if (nodeHandle_.getParam(
-        ns + "/thermal_camera_node/subscribed_topics/flir_temper_topic",
-        temperatureImageTopic_))
-    {
-      ROS_INFO_NAMED(PKG_NAME,
-        "[Process Node] Subscribed to the input Flir-Lepton temperature image topic");
-    }
-    else
-    {
-      ROS_ERROR_NAMED(PKG_NAME,
-        "[Process Node] Could not subscribe to Flir-Lepton temperature image topic");
     }
 
     // Read the name of the topic to which the process node will be publishing

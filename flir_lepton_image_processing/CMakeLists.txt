@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   #image_transport
   dynamic_reconfigure
-  flir_lepton_ros_comm
+  flir_lepton_msgs
   roslint
   )
 
@@ -20,7 +20,7 @@ catkin_package(
     cv_bridge
     #image_transport
     dynamic_reconfigure
-    flir_lepton_ros_comm
+    flir_lepton_msgs
   INCLUDE_DIRS
     include
   LIBRARIES
