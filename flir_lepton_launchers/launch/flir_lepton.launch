@@ -1,9 +1,13 @@
+<?xml version='1.0'?>
 <launch>
+  <arg name="image_processing" default="true"/>
 
   <!-- Launch the flir_lepton package -->
   <include file="$(find flir_lepton_sensor)/launch/flir_lepton_sensor.launch" />
 
   <!-- Launch the flir_lepton_image_processing package -->
-  <include file="$(find flir_lepton_image_processing)/launch/flir_lepton_image_processing.launch" />
+  <include if="$(arg image_processing)"
+    file="$(find flir_lepton_image_processing)/launch/flir_lepton_image_processing.launch" 
+  />
 
 </launch>
