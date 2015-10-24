@@ -55,7 +55,9 @@
 /* ---< ROS related >--- */
 #include "ros/ros.h"
 #include "sensor_msgs/Image.h"
-#include "flir_lepton_ros_comm/TemperaturesMsg.h"
+#include "flir_lepton_msgs/TemperaturesMsg.h"
+#include "flir_lepton_msgs/FlirLeptonBatchMsg.h"
+#include "flir_lepton_msgs/FlirLeptonRawMsg.h"
 /* --------------------- */
 
 
@@ -84,13 +86,16 @@ namespace flir_lepton
         };
 
         /* ------< Published Topics >------ */
-        std::string image_topic_;
-        std::string temper_topic_;
+        std::string imageTopic_;
+        std::string temperTopic_;
+        std::string batchTopic_;
         /* -------------------------------- */
 
         /* -------< ROS Publishers >------- */
-        ros::Publisher image_publisher_;
-        ros::Publisher temper_publisher_;
+        ros::Publisher imagePublisher_;
+        ros::Publisher temperPublisher_;
+        ros::Publisher batchPublisher_;
+        ros::Publisher raw_publisher_;
         /* -------------------------------- */
         ros::NodeHandle nh_;
         ros::Time now_;
@@ -109,8 +114,8 @@ namespace flir_lepton
         /* ------------------------------------------- */
 
         /* ------< Scene Temperature Values >--------- */
-        std::vector<float> scene_tempers_;
-        float scene_avgTemper_;
+        std::vector<float> frameTempers_;
+        float frameAvgTemper_;
         /* ------------------------------------------- */
 
         // Raw sensor signal values to absolute thermal values map
@@ -141,31 +146,31 @@ namespace flir_lepton
         /*!
          * @brief Reads a frame from flir lepton thermal camera
          */
-        void readFrame(uint8_t** frame_buffer);
+        void readFrame(uint8_t** rawBuffer);
 
 
         /*!
          * @brief Exports thermal signal values from an obtained VoSPI frame
          */
-        void processFrame(
-          uint8_t* frame_buffer, std::vector<uint16_t>& rawData,
-          uint16_t& minValue, uint16_t& maxValue);
+        void processFrame(uint16_t& minValue, uint16_t& maxValue);
 
 
 
-        void craftTemperMsg(const std::vector<uint16_t>& rawData,
-          flir_lepton_ros_comm::TemperaturesMsg& temperMsg, uint16_t minValue,
-          uint16_t maxValue);
+        void craftTemperMsg(flir_lepton_msgs::TemperaturesMsg& temperMsg);
 
 
         /*!
          * @brief Fills Thermal image ros message
          */
         void craftImageMsg(
-          const std::vector<uint16_t>& rawData,
-          sensor_msgs::Image* thermalImage, uint16_t minValue,
+          sensor_msgs::Image& thermalImage, uint16_t minValue,
           uint16_t maxValue);
 
+
+        void craftBatchMsg(
+          flir_lepton_msgs::FlirLeptonBatchMsg& batchMsg,
+          flir_lepton_msgs::TemperaturesMsg& temperMsg,
+          sensor_msgs::Image& thermalImage);
 
       public:
 

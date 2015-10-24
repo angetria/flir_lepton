@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>flir_lepton_ros_comm</name>
+  <name>flir_lepton_msgs</name>
   <version>0.0.1</version>
   <description>Flir Lepton ros communications</description>
 

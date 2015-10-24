@@ -1,6 +1,7 @@
 published_topics:
   flir_image_topic: /flir_lepton/image
   flir_temper_topic: /flir_lepton/temperatures
+  flir_batch_topic: /flir_lepton/batch
 flir_urdf:
   camera_optical_frame: /flir_lepton_optical_frame
 thermal_image:

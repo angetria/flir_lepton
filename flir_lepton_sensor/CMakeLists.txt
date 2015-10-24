@@ -5,7 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   sensor_msgs
-  flir_lepton_ros_comm
+  flir_lepton_msgs
 )
 
 
@@ -17,7 +17,7 @@ catkin_package(
     roscpp
     roslib
     sensor_msgs
-    flir_lepton_ros_comm
+    flir_lepton_msgs
   DEPENDS system_lib
 )
 

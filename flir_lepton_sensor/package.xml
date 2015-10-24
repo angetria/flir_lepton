@@ -19,7 +19,7 @@
   <depend>roslib</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>flir_lepton_ros_comm</depend>
+  <depend>flir_lepton_msgs</depend>
 
   <export>
 

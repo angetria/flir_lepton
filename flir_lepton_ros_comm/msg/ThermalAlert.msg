@@ -1,3 +1,0 @@
-flir_lepton_ros_comm/GeneralAlertInfo info
-
-float32 temperature

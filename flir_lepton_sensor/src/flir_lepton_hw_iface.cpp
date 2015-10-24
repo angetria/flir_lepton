@@ -69,11 +69,12 @@ namespace flir_lepton
       calibMap_ = Utils::loadThermalCalibMap(calibFileUri_);
 
       openDevice();
-      temper_publisher_ = nh_.advertise<flir_lepton_ros_comm::TemperaturesMsg>(
-        temper_topic_, 1);
-      image_publisher_ = nh_.advertise<sensor_msgs::Image>(image_topic_, 1);
+      temperPublisher_ = nh_.advertise<flir_lepton_msgs::TemperaturesMsg>(
+        temperTopic_, 1);
+      imagePublisher_ = nh_.advertise<sensor_msgs::Image>(imageTopic_, 1);
+      batchPublisher_ = nh_.advertise<flir_lepton_msgs::FlirLeptonBatchMsg>(
+        batchTopic_, 1);
     }
-
 
 
     FlirLeptonHWIface::~FlirLeptonHWIface()
@@ -81,7 +82,6 @@ namespace flir_lepton
       closeDevice();
       delete[] rawBuffer_;
     }
-
 
 
     void FlirLeptonHWIface::loadParameters(void)
@@ -109,10 +109,12 @@ namespace flir_lepton
       imageHeight_ = param;
       nh_.param<int32_t>("thermal_image/width", param, 80);
       imageWidth_ = param;
-      nh_.param<std::string>("published_topics/flir_image_topic", image_topic_,
+      nh_.param<std::string>("published_topics/flir_image_topic", imageTopic_,
         "/flir_lepton/image");
       nh_.param<std::string>("published_topics/flir_temper_topic",
-        temper_topic_, "flir_lepton/temperatures");
+        temperTopic_, "flir_lepton/temperatures");
+      nh_.param<std::string>("published_topics/flir_batch_topic",
+        batchTopic_, "flir_lepton/batch");
       /* ----------------------------------------- */
 
       flirSpi_.configFlirSpi(nh_);
@@ -140,12 +142,10 @@ namespace flir_lepton
     }
 
 
-
     uint8_t* FlirLeptonHWIface::FlirSpi::makeFrameBuffer(void)
     {
       return new uint8_t[packet_size * packets_per_frame];
     }
-
 
 
     void FlirLeptonHWIface::run(void)
@@ -154,29 +154,36 @@ namespace flir_lepton
       now_ = ros::Time::now();
       frameData_.clear();
       uint16_t minValue, maxValue;
-      processFrame(rawBuffer_, frameData_, minValue, maxValue);
+      processFrame(minValue, maxValue);
 
       // Sensor_msgs/Image
       sensor_msgs::Image thermalImage;
 
       // Custom message
-      flir_lepton_ros_comm::TemperaturesMsg temperMsg;
+      flir_lepton_msgs::TemperaturesMsg temperMsg;
 
-      // Create the Image message
-      craftImageMsg(frameData_, &thermalImage, minValue, maxValue);
+      flir_lepton_msgs::FlirLeptonBatchMsg batchMsg;
+
+      // Thermal Image Message creation
+      craftImageMsg(thermalImage, minValue, maxValue);
+
+      // Batch msg creation
+      craftBatchMsg(batchMsg, temperMsg, thermalImage);
+      
 
       // Create the custom message
-      craftTemperMsg(frameData_, temperMsg, minValue, maxValue);
+      craftTemperMsg(temperMsg);
 
       /* --------< Publish Messages >-------- */
-      image_publisher_.publish(thermalImage);
-      temper_publisher_.publish(temperMsg);
+      imagePublisher_.publish(thermalImage);
+      temperPublisher_.publish(temperMsg);
+      batchPublisher_.publish(batchMsg);
       /* ------------------------------------ */
     }
 
 
 
-    void FlirLeptonHWIface::readFrame(uint8_t** frame_buffer)
+    void FlirLeptonHWIface::readFrame(uint8_t** rawBuffer)
     {
       int packet_number = -1;
       int resets = 0;
@@ -185,9 +192,9 @@ namespace flir_lepton
       for (uint16_t i = 0; i < flirSpi_.packets_per_frame; i++)
       {
         // flir sends discard packets that we need to resolve
-        read(flirSpi_.handler, &(*frame_buffer)[flirSpi_.packet_size * i],
+        read(flirSpi_.handler, &(*rawBuffer)[flirSpi_.packet_size * i],
           sizeof(uint8_t) * flirSpi_.packet_size);
-        packet_number = (*frame_buffer)[i * flirSpi_.packet_size + 1];
+        packet_number = (*rawBuffer)[i * flirSpi_.packet_size + 1];
         if (packet_number != i)
         {
           // if it is a drop packet, reset i
@@ -222,82 +229,78 @@ namespace flir_lepton
 
 
     void FlirLeptonHWIface::processFrame(
-      uint8_t* frame_buffer, std::vector<uint16_t>& rawData,
       uint16_t& minValue, uint16_t& maxValue)
     {
-      int row, column;
       uint16_t value;
       minValue = -1;
       maxValue = 0;
-      uint16_t* frame_buffer_16 = (uint16_t*) frame_buffer;
+      uint16_t* frame_buffer_16 = (uint16_t*) rawBuffer_;
       uint16_t temp;
-      uint16_t diff;
-      float scale;
-      std::vector<int> v;
+      float temperVal;
+      float temperSum = 0;
+
+      // Clear previous acquired frame temperature values
+      frameTempers_.clear();
 
       for (int i = 0; i < flirSpi_.frame_size_uint16; i++)
       {
         //Discard the first 4 bytes. it is the header.
         if (i % flirSpi_.packet_size_uint16 < 2) continue;
 
-        temp = frame_buffer[i*2];
-        frame_buffer[i*2] = frame_buffer[i*2+1];
-        frame_buffer[i*2+1] = temp;
+        temp = rawBuffer_[i*2];
+        rawBuffer_[i*2] = rawBuffer_[i*2+1];
+        rawBuffer_[i*2+1] = temp;
         value = frame_buffer_16[i];
-        rawData.push_back(value);
+        frameData_.push_back(value);
+
         if (value > maxValue) maxValue = value;
         if (value < minValue) minValue = value;
+
+        temperVal = Utils::signalToTemperature(
+          value, calibMap_);
+        frameTempers_.push_back(temperVal);
+        temperSum += temperVal;
       }
+
+      frameAvgTemper_ = temperSum / (imageHeight_ * imageWidth_);
     }
 
 
-
     void FlirLeptonHWIface::craftImageMsg(
-      const std::vector<uint16_t>& rawData,
-      sensor_msgs::Image* thermalImage, uint16_t minValue, uint16_t maxValue)
+      sensor_msgs::Image& thermalImage, uint16_t minValue, uint16_t maxValue)
     {
-      thermalImage->header.stamp = now_;
-      thermalImage->header.frame_id = frame_id_;
-      thermalImage->height = imageHeight_;
-      thermalImage->width = imageWidth_;
-      thermalImage->encoding = image_encoding_;
-      thermalImage->is_bigendian = 0;
-      thermalImage->step = imageWidth_ * sizeof(uint8_t);
+      thermalImage.header.stamp = now_;
+      thermalImage.header.frame_id = frame_id_;
+      thermalImage.height = imageHeight_;
+      thermalImage.width = imageWidth_;
+      thermalImage.encoding = image_encoding_;
+      thermalImage.is_bigendian = 0;
+      thermalImage.step = imageWidth_ * sizeof(uint8_t);
 
       for (int i = 0; i < imageWidth_; i++) {
         for (int j = 0; j < imageHeight_; j++) {
           uint8_t value = Utils::signalToImageValue(
-            rawData.at(i * imageHeight_ + j), minValue, maxValue);
-          thermalImage->data.push_back(value);
+            frameData_.at(i * imageHeight_ + j), minValue, maxValue);
+          thermalImage.data.push_back(value);
         }
       }
     }
 
 
     void FlirLeptonHWIface::craftTemperMsg(
-      const std::vector<uint16_t>& rawData,
-      flir_lepton_ros_comm::TemperaturesMsg& temperMsg, uint16_t minValue,
-      uint16_t maxValue)
+      flir_lepton_msgs::TemperaturesMsg& temperMsg)
     {
-      float temperSum = 0.0;
       temperMsg.header.stamp = now_;
       temperMsg.header.frame_id = frame_id_;
-      scene_tempers_.clear();
 
       // Vector containing the temperatures in image after calibration and vector
       // with signal raw values
       for (int i = 0; i < imageHeight_; i++) {
         for (int j = 0; j < imageWidth_; j++) {
-
-          float value = Utils::signalToTemperature(
-            rawData.at(i * imageWidth_ + j), calibMap_);
-          temperMsg.temperatures.data.push_back(value);
-          scene_tempers_.push_back(value);
-          temperSum += value;
+          temperMsg.temperatures.data.push_back(
+            frameTempers_.at(i * imageHeight_ + j));
         }
       }
-
-      scene_avgTemper_ = temperSum / (imageHeight_ * imageWidth_);
 
       temperMsg.temperatures.layout.dim.push_back(
         std_msgs::MultiArrayDimension());
@@ -305,6 +308,18 @@ namespace flir_lepton
 
       temperMsg.temperatures.layout.dim.push_back(std_msgs::MultiArrayDimension());
       temperMsg.temperatures.layout.dim[1].size = 80;
+    }
+
+
+    void FlirLeptonHWIface::craftBatchMsg(
+      flir_lepton_msgs::FlirLeptonBatchMsg& batchMsg,
+      flir_lepton_msgs::TemperaturesMsg& temperMsg,
+      sensor_msgs::Image& thermalImage)
+    {
+      batchMsg.header.stamp = now_;
+      batchMsg.header.frame_id = frame_id_;
+      batchMsg.temperatures = temperMsg;
+      batchMsg.thermalImage = thermalImage;
     }
 
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(flir_lepton_ros_comm)
+project(flir_lepton_msgs)
 
 find_package(catkin REQUIRED COMPONENTS
   message_generation
@@ -9,15 +9,23 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 
-add_message_files(DIRECTORY msg
+add_message_files(DIRECTORY msg/flir_lepton_sensor
   FILES
-  flir_lepton_sensor/TemperaturesMsg.msg
+  TemperaturesMsg.msg
+  FlirLeptonBatchMsg.msg
+  FlirLeptonRawMsg.msg
+)
+
+
+add_message_files(DIRECTORY msg/flir_lepton_image_processing
+  FILES
   CandidateRoiMsg.msg
   CandidateRoisVectorMsg.msg
   GeneralAlertInfo.msg
   ThermalAlert.msg
   ThermalAlertVector.msg
 )
+
 
 ## Generate added messages with any dependencies listed here
 generate_messages(
