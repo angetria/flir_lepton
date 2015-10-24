@@ -65,6 +65,9 @@ namespace flir_lepton
 {
   namespace flir_lepton_sensor
   {
+    #define IMAGE_HEIGHT 60
+    #define IMAGE_WIDTH 80
+
     class FlirLeptonHWIface
     {
       private:
@@ -75,15 +78,27 @@ namespace flir_lepton
           uint8_t bits;
           uint32_t speed;
           uint16_t delay;
-          uint16_t packet_size;
-          uint16_t packets_per_frame;
-          uint16_t packet_size_uint16;
-          uint16_t frame_size_uint16;
           int handler;
 
           void configFlirSpi(const ros::NodeHandle& nh);
-          uint8_t* makeFrameBuffer(void);
         };
+
+        struct FlirDataFrame
+        {
+          uint16_t packetSize;
+          uint16_t packetsPerFrame;
+          uint16_t packetSize16;
+          uint16_t frameSize16;
+
+          uint8_t* frameBuffer;
+          uint16_t* cleanDataBuffer;
+          uint16_t* frameData;  // Clean flir data frame.
+          //std::vector<uint16_t> dataV;
+          uint16_t minVal;
+          uint16_t maxVal;
+          void allocateBuffers(void);
+        };
+
 
         /* ------< Published Topics >------ */
         std::string imageTopic_;
@@ -103,20 +118,23 @@ namespace flir_lepton
         int statusValue_;
         FlirSpi flirSpi_;  // SPI interface container
 
-        uint8_t* rawBuffer_;
-        std::vector<uint16_t> frameData_;  // Raw signal values
+        FlirDataFrame flirDataFrame_;
+        uint16_t* lastFrame_;
 
         /* -----< Thermal Image Characteristics >----- */
-        std::string frame_id_;
-        std::string image_encoding_;
-        uint16_t imageHeight_;
-        uint16_t imageWidth_;
+        std::string frameId_;
+        std::string imageEncoding_;
         /* ------------------------------------------- */
 
         /* ------< Scene Temperature Values >--------- */
-        std::vector<float> frameTempers_;
         float frameAvgTemper_;
         /* ------------------------------------------- */
+
+        /* -------------< Publishing Messages >-------------- */
+        flir_lepton_msgs::TemperaturesMsg temperMsg_;
+        flir_lepton_msgs::FlirLeptonBatchMsg batchMsg_;
+        sensor_msgs::Image thermalImage_;
+        /* -------------------------------------------------- */
 
         // Raw sensor signal values to absolute thermal values map
         std::map<uint16_t, float> calibMap_;
@@ -146,31 +164,18 @@ namespace flir_lepton
         /*!
          * @brief Reads a frame from flir lepton thermal camera
          */
-        void readFrame(uint8_t** rawBuffer);
-
+        void readFrame(void);
 
         /*!
          * @brief Exports thermal signal values from an obtained VoSPI frame
          */
-        void processFrame(uint16_t& minValue, uint16_t& maxValue);
+        void processFrame(void);
 
 
-
-        void craftTemperMsg(flir_lepton_msgs::TemperaturesMsg& temperMsg);
-
-
-        /*!
-         * @brief Fills Thermal image ros message
-         */
-        void craftImageMsg(
-          sensor_msgs::Image& thermalImage, uint16_t minValue,
-          uint16_t maxValue);
+        void allocateFrameData(void);
 
 
-        void craftBatchMsg(
-          flir_lepton_msgs::FlirLeptonBatchMsg& batchMsg,
-          flir_lepton_msgs::TemperaturesMsg& temperMsg,
-          sensor_msgs::Image& thermalImage);
+        void fillBatchMsg(void);
 
       public:
 

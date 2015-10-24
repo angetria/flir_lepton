@@ -59,12 +59,11 @@ namespace flir_lepton
     FlirLeptonHWIface::FlirLeptonHWIface(
       const std::string& ns):
       nh_(ns),
-      image_encoding_("mono8"),
+      imageEncoding_("mono8"),
       MAX_RESETS_ERROR(750),
       MAX_RESTART_ATTEMPS_EXIT(5)
     {
       loadParameters();
-      rawBuffer_ = flirSpi_.makeFrameBuffer();
 
       calibMap_ = Utils::loadThermalCalibMap(calibFileUri_);
 
@@ -74,13 +73,32 @@ namespace flir_lepton
       imagePublisher_ = nh_.advertise<sensor_msgs::Image>(imageTopic_, 1);
       batchPublisher_ = nh_.advertise<flir_lepton_msgs::FlirLeptonBatchMsg>(
         batchTopic_, 1);
+
+      flirDataFrame_.allocateBuffers();
+      allocateFrameData();
+
+      /* -------------- Initialize topic message containers ----------------- */
+      thermalImage_.header.frame_id = frameId_;
+      thermalImage_.height = IMAGE_HEIGHT;
+      thermalImage_.width = IMAGE_WIDTH;
+      thermalImage_.encoding = imageEncoding_;
+      thermalImage_.is_bigendian = 0;
+      thermalImage_.step = IMAGE_WIDTH * sizeof(uint8_t);
+
+      temperMsg_.header.frame_id = frameId_;
+      temperMsg_.values.layout.dim.push_back(std_msgs::MultiArrayDimension());
+      temperMsg_.values.layout.dim[0].size = IMAGE_HEIGHT;
+      temperMsg_.values.layout.dim.push_back(std_msgs::MultiArrayDimension());
+      temperMsg_.values.layout.dim[1].size = IMAGE_WIDTH;
+
+      batchMsg_.header.frame_id = frameId_;
+      /* -------------------------------------------------------------------- */
     }
 
 
     FlirLeptonHWIface::~FlirLeptonHWIface()
     {
       closeDevice();
-      delete[] rawBuffer_;
     }
 
 
@@ -103,12 +121,8 @@ namespace flir_lepton
       ROS_INFO("Temperature calibration dataset file: [%s]",
         calibFileUri_.c_str());
 
-      nh_.param<std::string>("flir_urdf/camera_optical_frame", frame_id_,
+      nh_.param<std::string>("flir_urdf/camera_optical_frame", frameId_,
         "/flir_optical_frame");
-      nh_.param<int32_t>("thermal_image/height", param, 60);
-      imageHeight_ = param;
-      nh_.param<int32_t>("thermal_image/width", param, 80);
-      imageWidth_ = param;
       nh_.param<std::string>("published_topics/flir_image_topic", imageTopic_,
         "/flir_lepton/image");
       nh_.param<std::string>("published_topics/flir_temper_topic",
@@ -118,6 +132,13 @@ namespace flir_lepton
       /* ----------------------------------------- */
 
       flirSpi_.configFlirSpi(nh_);
+
+      nh_.param<int32_t>("iface/packet_size", param, 164);
+      flirDataFrame_.packetSize = param;
+      flirDataFrame_.packetSize16 = param / 2;
+      nh_.param<int32_t>("iface/packets_per_frame", param, 60);
+      flirDataFrame_.packetsPerFrame = param;
+
     }
 
 
@@ -132,69 +153,73 @@ namespace flir_lepton
       speed = param;
       nh.param<int32_t>("iface/delay", param, 0);
       delay = param;
-      nh.param<int32_t>("iface/packet_size", param, 164);
-      packet_size = param;
-      nh.param<int32_t>("iface/packets_per_frame", param, 60);
-      packets_per_frame = param;
-      packet_size_uint16 = packet_size / 2;
-      frame_size_uint16 = packet_size_uint16 * packets_per_frame;
       nh.param<std::string>("iface/device_port", devicePort, "/dev/spidev0.0");
     }
 
 
-    uint8_t* FlirLeptonHWIface::FlirSpi::makeFrameBuffer(void)
+    /*!
+     *  @brief Allocate the uint16_t buffer memory
+     */
+    void FlirLeptonHWIface::FlirDataFrame::allocateBuffers(void)
     {
-      return new uint8_t[packet_size * packets_per_frame];
+      frameBuffer = new uint8_t[packetSize * packetsPerFrame];
+      cleanDataBuffer = new uint16_t[IMAGE_HEIGHT * IMAGE_WIDTH];
+      frameData = new uint16_t[IMAGE_HEIGHT * IMAGE_WIDTH];
+    }
+
+
+    void FlirLeptonHWIface::allocateFrameData(void)
+    {
+      lastFrame_ = new uint16_t[IMAGE_HEIGHT * IMAGE_WIDTH];
     }
 
 
     void FlirLeptonHWIface::run(void)
     {
-      readFrame(&rawBuffer_);
+      readFrame();
       now_ = ros::Time::now();
-      frameData_.clear();
-      uint16_t minValue, maxValue;
-      processFrame(minValue, maxValue);
-
-      // Sensor_msgs/Image
-      sensor_msgs::Image thermalImage;
-
-      // Custom message
-      flir_lepton_msgs::TemperaturesMsg temperMsg;
-
-      flir_lepton_msgs::FlirLeptonBatchMsg batchMsg;
-
-      // Thermal Image Message creation
-      craftImageMsg(thermalImage, minValue, maxValue);
-
-      // Create the custom message
-      craftTemperMsg(temperMsg);
+      processFrame();
+      uint16_t maxVal = flirDataFrame_.maxVal;
+      uint16_t minVal = flirDataFrame_.minVal;
 
       //Batch msg creation
-      craftBatchMsg(batchMsg, temperMsg, thermalImage);
+      fillBatchMsg();
 
       /* --------< Publish Messages >-------- */
-      imagePublisher_.publish(thermalImage);
-      temperPublisher_.publish(temperMsg);
-      batchPublisher_.publish(batchMsg);
+      imagePublisher_.publish(thermalImage_);
+      temperPublisher_.publish(temperMsg_);
+      batchPublisher_.publish(batchMsg_);
       /* ------------------------------------ */
     }
 
 
-
-    void FlirLeptonHWIface::readFrame(uint8_t** rawBuffer)
+    void FlirLeptonHWIface::readFrame(void)
     {
-      int packet_number = -1;
+      int packetNumber = -1;
       int resets = 0;
       int restarts = 0;
+      // Pointer to FlirDataFrame struct member buffer.
+      uint8_t* rawBuffer = flirDataFrame_.frameBuffer;
+      uint16_t* cleanData = flirDataFrame_.cleanDataBuffer;
+      uint16_t* frameData = flirDataFrame_.frameData;
 
-      for (uint16_t i = 0; i < flirSpi_.packets_per_frame; i++)
+
+      uint16_t packetSize = flirDataFrame_.packetSize;
+      uint16_t packetsPerFrame = flirDataFrame_.packetsPerFrame;
+      uint16_t packetSize16 = packetSize / 2;
+      uint16_t frameSize16 = packetSize16 * packetsPerFrame;
+      uint16_t maxVal, minVal;
+      uint16_t value, temp;
+
+      /* ------------------ Read raw frame data from spi -------------------- */
+      for (uint16_t i = 0; i < packetsPerFrame; i++)
       {
+        read(flirSpi_.handler, &rawBuffer[packetSize * i],
+          sizeof(uint8_t) * packetSize);
+
         // flir sends discard packets that we need to resolve
-        read(flirSpi_.handler, &(*rawBuffer)[flirSpi_.packet_size * i],
-          sizeof(uint8_t) * flirSpi_.packet_size);
-        packet_number = (*rawBuffer)[i * flirSpi_.packet_size + 1];
-        if (packet_number != i)
+        packetNumber = rawBuffer[i * packetSize + 1];
+        if (packetNumber != i)
         {
           // if it is a drop packet, reset i
           i = -1;
@@ -223,102 +248,88 @@ namespace flir_lepton
           }
         }
       }
+      /* -------------------------------------------------------------------- */
+
+      // Cast to uint16_t in (2 bytes).
+      uint16_t* rawBuffer16 = (uint16_t*) rawBuffer;
+      uint16_t cleanDataCount = 0;
+      maxVal = 0;
+      minVal = -1;
+
+      // Process this acquired from spi port, frame and create the data vector
+      for (int i = 0; i < frameSize16; i++)
+      {
+        //Discard the first 4 bytes. it is the header.
+        if (i % packetSize16 < 2) continue;
+
+        temp = rawBuffer[i * 2];
+        rawBuffer[i * 2] = rawBuffer[i * 2 + 1];
+        rawBuffer[i * 2 + 1] = temp;
+        value = rawBuffer16[i];
+
+        cleanData[cleanDataCount] = value;
+        cleanDataCount++;
+
+        if (value > maxVal) {maxVal = value;}
+        if (value < minVal) {minVal = value;}
+      }
+
+      // Copy cleanData to class frameData buffer
+      memcpy(frameData, cleanData, IMAGE_HEIGHT * IMAGE_WIDTH * sizeof(uint16_t));
+      flirDataFrame_.minVal = minVal;
+      flirDataFrame_.maxVal = maxVal;
     }
 
 
-
-    void FlirLeptonHWIface::processFrame(
-      uint16_t& minValue, uint16_t& maxValue)
+    /*!
+     *  @brief Process the last obtained from flir lepton VoSPI frame.
+     */
+    void FlirLeptonHWIface::processFrame(void)
     {
-      uint16_t value;
-      minValue = -1;
-      maxValue = 0;
-      uint16_t* frame_buffer_16 = (uint16_t*) rawBuffer_;
+      uint8_t imageVal;
       uint16_t temp;
       float temperVal;
       float temperSum = 0;
+      uint16_t minVal, maxVal;
+
+      /* ==================================================================== */
+      memcpy(lastFrame_, flirDataFrame_.frameData,
+        IMAGE_HEIGHT * IMAGE_WIDTH * sizeof(uint16_t));
+      minVal = flirDataFrame_.minVal;
+      maxVal = flirDataFrame_.maxVal;
+      /* ==================================================================== */
 
       // Clear previous acquired frame temperature values
-      frameTempers_.clear();
+      temperMsg_.values.data.clear();
+      thermalImage_.data.clear();
 
-      for (int i = 0; i < flirSpi_.frame_size_uint16; i++)
-      {
-        //Discard the first 4 bytes. it is the header.
-        if (i % flirSpi_.packet_size_uint16 < 2) continue;
+      for (int i = 0; i < IMAGE_WIDTH; i++) {
+        for (int j = 0; j < IMAGE_HEIGHT; j++) {
+          // Thermal image creation
+          imageVal = Utils::signalToImageValue(
+            lastFrame_[i * IMAGE_HEIGHT + j], minVal, maxVal);
+          thermalImage_.data.push_back(imageVal);
 
-        temp = rawBuffer_[i*2];
-        rawBuffer_[i*2] = rawBuffer_[i*2+1];
-        rawBuffer_[i*2+1] = temp;
-        value = frame_buffer_16[i];
-        frameData_.push_back(value);
-
-        if (value > maxValue) maxValue = value;
-        if (value < minValue) minValue = value;
-
-        temperVal = Utils::signalToTemperature(
-          value, calibMap_);
-        frameTempers_.push_back(temperVal);
-        temperSum += temperVal;
-      }
-
-      frameAvgTemper_ = temperSum / (imageHeight_ * imageWidth_);
-    }
-
-
-    void FlirLeptonHWIface::craftImageMsg(
-      sensor_msgs::Image& thermalImage, uint16_t minValue, uint16_t maxValue)
-    {
-      thermalImage.header.stamp = now_;
-      thermalImage.header.frame_id = frame_id_;
-      thermalImage.height = imageHeight_;
-      thermalImage.width = imageWidth_;
-      thermalImage.encoding = image_encoding_;
-      thermalImage.is_bigendian = 0;
-      thermalImage.step = imageWidth_ * sizeof(uint8_t);
-
-      for (int i = 0; i < imageWidth_; i++) {
-        for (int j = 0; j < imageHeight_; j++) {
-          uint8_t value = Utils::signalToImageValue(
-            frameData_.at(i * imageHeight_ + j), minValue, maxValue);
-          thermalImage.data.push_back(value);
-        }
-      }
-    }
-
-
-    void FlirLeptonHWIface::craftTemperMsg(
-      flir_lepton_msgs::TemperaturesMsg& temperMsg)
-    {
-      temperMsg.header.stamp = now_;
-      temperMsg.header.frame_id = frame_id_;
-
-      // Vector containing the temperatures in image after calibration and vector
-      // with signal raw values
-      for (int i = 0; i < imageHeight_; i++) {
-        for (int j = 0; j < imageWidth_; j++) {
-          temperMsg.values.data.push_back(
-            frameTempers_.at(i * imageWidth_ + j));
+          // Scene frame Temperatures vector creation.
+          temperVal = Utils::signalToTemperature(
+            lastFrame_[i * IMAGE_HEIGHT + j], calibMap_);
+          temperMsg_.values.data.push_back(temperVal);
+          temperSum += temperVal;
         }
       }
 
-      temperMsg.values.layout.dim.push_back(
-        std_msgs::MultiArrayDimension());
-      temperMsg.values.layout.dim[0].size = 60;
+      thermalImage_.header.stamp = now_;
+      temperMsg_.header.stamp = now_;
 
-      temperMsg.values.layout.dim.push_back(std_msgs::MultiArrayDimension());
-      temperMsg.values.layout.dim[1].size = 80;
+      frameAvgTemper_ = temperSum / (IMAGE_HEIGHT * IMAGE_WIDTH);
     }
 
 
-    void FlirLeptonHWIface::craftBatchMsg(
-      flir_lepton_msgs::FlirLeptonBatchMsg& batchMsg,
-      flir_lepton_msgs::TemperaturesMsg& temperMsg,
-      sensor_msgs::Image& thermalImage)
+    void FlirLeptonHWIface::fillBatchMsg(void)
     {
-      batchMsg.header.stamp = now_;
-      batchMsg.header.frame_id = frame_id_;
-      batchMsg.temperatures = temperMsg;
-      batchMsg.thermalImage = thermalImage;
+      batchMsg_.header.stamp = now_;
+      batchMsg_.temperatures = temperMsg_;
+      batchMsg_.thermalImage = thermalImage_;
     }
 
 
