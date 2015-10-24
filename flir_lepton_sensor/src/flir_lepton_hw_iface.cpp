@@ -167,12 +167,11 @@ namespace flir_lepton
       // Thermal Image Message creation
       craftImageMsg(thermalImage, minValue, maxValue);
 
-      // Batch msg creation
-      craftBatchMsg(batchMsg, temperMsg, thermalImage);
-      
-
       // Create the custom message
       craftTemperMsg(temperMsg);
+
+      //Batch msg creation
+      craftBatchMsg(batchMsg, temperMsg, thermalImage);
 
       /* --------< Publish Messages >-------- */
       imagePublisher_.publish(thermalImage);
