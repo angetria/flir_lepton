@@ -152,7 +152,6 @@ namespace flir_lepton_image_processing
 
     cv::Mat thermalImage = selectImageToProcess(
       msg, Parameters::Thermal::detection_method);
-    ROS_WARN("Passed");
 
     RoisConveyor rois;
 

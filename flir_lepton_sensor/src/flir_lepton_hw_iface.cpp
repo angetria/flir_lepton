@@ -297,7 +297,7 @@ namespace flir_lepton
       for (int i = 0; i < imageHeight_; i++) {
         for (int j = 0; j < imageWidth_; j++) {
           temperMsg.values.data.push_back(
-            frameTempers_.at(i * imageHeight_ + j));
+            frameTempers_.at(i * imageWidth_ + j));
         }
       }
 
