@@ -81,7 +81,7 @@ namespace flir_lepton_image_processing
       std::string candidateRoisTopic_;
 
       // Ros publisher for the candidate Rois Alert message found by process node.
-      // Includes flir_lepton_ros_comm/GeneralAlertInfo and temperatures
+      // Includes flir_lepton_msgs/GeneralAlertInfo and temperatures
       ros::Publisher candidateRoisAlertPublisher_;
 
       // The name of the topic where the candidate Rois Alert message that the

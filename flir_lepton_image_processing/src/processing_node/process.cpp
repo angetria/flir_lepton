@@ -61,12 +61,12 @@ namespace flir_lepton_image_processing
 
     // Advertise the candidate Rois found by the process node.
     candidateRoisPublisher_ = nodeHandle_.advertise
-      <flir_lepton_ros_comm::CandidateRoisVectorMsg>(
+      <flir_lepton_msgs::CandidateRoisVectorMsg>(
       candidateRoisTopic_, 1);
 
     // Advertise the candidate Rois Alert message found by the process node.
     candidateRoisAlertPublisher_ = nodeHandle_.advertise
-      <flir_lepton_ros_comm::ThermalAlertVector>(
+      <flir_lepton_msgs::ThermalAlertVector>(
       candidateRoisAlertTopic_, 1);
 
     // The dynamic reconfigure (process) parameter's callback

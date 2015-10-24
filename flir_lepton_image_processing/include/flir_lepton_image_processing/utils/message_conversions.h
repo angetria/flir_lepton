@@ -41,7 +41,7 @@
 
 #include <std_msgs/Float32MultiArray.h>
 #include <sensor_msgs/Image.h>
-#include "flir_lepton_ros_comm/CandidateRoisVectorMsg.h"
+#include "flir_lepton_msgs/CandidateRoisVectorMsg.h"
 #include "utils/defines.h"
 #include "utils/outline_discovery.h"
 #include "utils/thermal_rois_conveyor.h"
@@ -73,31 +73,31 @@ namespace flir_lepton_image_processing
         const sensor_msgs::Image& msg);
 
       /**
-        @brief Constructs a flir_lepton_image_processing/CandidateRoisVectorMsg
+        @brief Constructs a flir_lepton_msgs/CandidateRoisVectorMsg
         message
         @param[in] conveyor [RoisConveyor&] A struct containing
         vectors of the rois keypoints, bounding rectangles' vertices
         and blobs' outlines.
         @param[out] candidateRoisVector
-        [std::vector<flir_lepton_ros_comm::CandidateRoisVectorMsg>*]
+        [std::vector<flir_lepton_msgs::CandidateRoisVectorMsg>*]
         The vector containing the conveyor's rois in
-        flir_lepton_ros_comm::CandidateRoisVectorMsg format
+        flir_lepton_msgs::CandidateRoisVectorMsg format
         @return void
        **/
       static void createCandidateRoisVector(
         const RoisConveyor& conveyor,
-        std::vector<flir_lepton_ros_comm::CandidateRoiMsg>*
+        std::vector<flir_lepton_msgs::CandidateRoiMsg>*
         candidateRoisVector);
 
       /**
-        @brief Constructs a flir_lepton_image_processing/CandidateRoisVectorMsg
+        @brief Constructs a flir_lepton_msgs/CandidateRoisVectorMsg
         message
         @param[in] conveyor [RoisConveyor&] A struct containing
         vectors of the rois keypoints, bounding rectangles' vertices
         and blobs' outlines.
         @param[in] image [cv::Mat&] The image to be packed in the message
         @param[out] candidateRoisVectorMsg
-        [flir_lepton_ros_comm::CandidateRoisVectorMsg*]
+        [flir_lepton_msgs::CandidateRoisVectorMsg*]
         The output message
         @param[in] encoding [std::string&] The image's encoding
         @param[in] msg [const sensor_msgs::Image&] Needed to extract
@@ -107,7 +107,7 @@ namespace flir_lepton_image_processing
       static void createCandidateRoisVectorMessage(
         const RoisConveyor& conveyor,
         const cv::Mat& image,
-        flir_lepton_ros_comm::CandidateRoisVectorMsg*
+        flir_lepton_msgs::CandidateRoisVectorMsg*
         candidateRoisVectorMsg,
         const std::string& encoding,
         const sensor_msgs::Image& msg);
@@ -126,29 +126,29 @@ namespace flir_lepton_image_processing
 
       /**
         @brief Extracts a cv::Mat image from a custom ROS message  of type
-        flir_lepton_image_processing::CandidateRoisVectorMsg
-        @param[in] msg [const flir_lepton_ros_comm::CandidateRoisVectorMsg&]
+        flir_lepton_msgs::CandidateRoisVectorMsg
+        @param[in] msg [const flir_lepton_msgs::CandidateRoisVectorMsg&]
         The input ROS message
         @param[out] image [cv::Mat*] The output image
         @param[in] encoding [const std::string&] The image encoding
         @return void
        **/
       static void extractImageFromMessageContainer(
-        const flir_lepton_ros_comm::CandidateRoisVectorMsg& msg,
+        const flir_lepton_msgs::CandidateRoisVectorMsg& msg,
         cv::Mat* image, const std::string& encoding);
 
       /**
         @brief Recreates the RoisConveyor struct for the candidate rois
-        from the flir_lepton_image_processing::CandidateRoiMsg message
+        from the flir_lepton_msgs::CandidateRoiMsg message
         @param[in] candidateRoisVector
-        [const std::vector<flir_lepton_ros_comm::CandidateRoiMsg>&]
+        [const std::vector<flir_lepton_msgs::CandidateRoiMsg>&]
         The input candidate rois
         @param[out] conveyor [RoisConveyor*] The output conveyor
         struct
         @return void
        **/
       static void fromCandidateRoiMsgToConveyor(
-        const std::vector<flir_lepton_ros_comm::CandidateRoiMsg>&
+        const std::vector<flir_lepton_msgs::CandidateRoiMsg>&
         candidateRoisVector,
         RoisConveyor* conveyor);
 
@@ -156,7 +156,7 @@ namespace flir_lepton_image_processing
         @brief Unpacks the the RoisConveyor struct for the
         candidate rois.
         @param[in] roisMsg
-        [flir_lepton_ros_comm::CandidateRoisVectorMsg&] The input
+        [flir_lepton_msgs::CandidateRoisVectorMsg&] The input
         candidate rois message obtained through the processor node
         @param[out] conveyor [RoisConveyor*] The output conveyor
         struct
@@ -165,7 +165,7 @@ namespace flir_lepton_image_processing
         @return void
        **/
       static void unpackMessage(
-        const flir_lepton_ros_comm::CandidateRoisVectorMsg& roisMsg,
+        const flir_lepton_msgs::CandidateRoisVectorMsg& roisMsg,
         RoisConveyor* conveyor,
         cv::Mat* image,
         const std::string& encoding);
