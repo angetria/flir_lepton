@@ -103,7 +103,7 @@ namespace flir_lepton_image_processing
     // Check the detection method
     // Detection method = 0 --> process the binary image acquired from temperatures
     // Detection method = 1 --> process the sensor image so this function returns
-    switch (Parameters::Thermal::detection_method)
+    switch (detection_method)
     {
       case 0:
         // Obtain the thermal message and extract the temperature information.
@@ -152,6 +152,7 @@ namespace flir_lepton_image_processing
 
     cv::Mat thermalImage = selectImageToProcess(
       msg, Parameters::Thermal::detection_method);
+    ROS_WARN("Passed");
 
     RoisConveyor rois;
 
