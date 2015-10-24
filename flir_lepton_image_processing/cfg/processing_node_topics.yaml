@@ -1,5 +1,5 @@
 subscribed_topics:
-  flir_image_topic: /flir_lepton/image
+  flir_batch_topic: /flir_lepton/batch
 
 published_topics:
   # The outline, center and rectangle of the thermal rois found

@@ -45,7 +45,7 @@
 #include "flir_lepton_msgs/GeneralAlertInfo.h"
 #include "flir_lepton_msgs/ThermalAlert.h"
 #include "flir_lepton_msgs/ThermalAlertVector.h"
-#include "flir_lepton_msgs/TemperaturesMsg.h"
+#include "flir_lepton_msgs/FlirLeptonBatchMsg.h"
 #include "std_msgs/Float32MultiArray.h"
 
 /**
@@ -67,10 +67,10 @@ namespace flir_lepton_image_processing
       ros::NodeHandle nodeHandle_;
 
       // Subscriber of Flir Lepton camera sensor/temperature image.
-      ros::Subscriber thermalImageSubscriber_;
+      ros::Subscriber batchSubscriber_;
 
       // The name of the topic where the sensor/temperature image is acquired from.
-      std::string thermalImageTopic_;
+      std::string batchTopic_;
 
       // Ros publisher for the candidate Rois found by process node.
       // Includes keypoints, outline and bounding box
