@@ -1,9 +1,15 @@
 <?xml version='1.0'?>
 <launch>
   <arg name="image_processing" default="true"/>
+  <arg name="gray_image" default="true" />
+  <arg name="rgb_image" default="true" />
 
   <!-- Launch the flir_lepton package -->
-  <include file="$(find flir_lepton_sensor)/launch/flir_lepton_sensor.launch" />
+  <include file="$(find flir_lepton_sensor)/launch/flir_lepton_sensor.launch" >
+    <arg name="rgb_image" default="true" />
+    <arg name="gray_image" default="true" />
+  </include>
+
 
   <!-- Launch the flir_lepton_image_processing package -->
   <include if="$(arg image_processing)"
