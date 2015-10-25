@@ -266,7 +266,8 @@ namespace flir_lepton
               if (resets == MAX_RESETS_ERROR) //Reach 750 sometimes
               {
                 restarts ++;
-                ROS_ERROR("[Flir-Lepton]: Error --> resets numbered at [%d]", resets);
+                ROS_ERROR("[Flir-Lepton]: VoSPI packages are corrupted");
+                ROS_WARN("[Flir-Lepton]: SPI communication restarting...");
                 closeDevice();
                 boost::this_thread::sleep(boost::posix_time::milliseconds(25));
                 openDevice();
@@ -276,7 +277,7 @@ namespace flir_lepton
               // If true we assume an exit status.. Kill process and exit
               if (restarts > MAX_RESTART_ATTEMPS_EXIT)
               {
-                ROS_FATAL("[Flir-Lepton]: Cannot communicate with sensor. Exiting...");
+                ROS_FATAL("[Flir-Lepton]: Sensor does not respond. Exiting...");
                 ros::shutdown();
                 exit(1);
               }
@@ -409,7 +410,7 @@ namespace flir_lepton
       flirSpi_.handler = open(flirSpi_.devicePort.c_str(), O_RDWR);
       if (flirSpi_.handler < 0)
       {
-        ROS_FATAL("[Flir-Lepton]: Can't open SPI device --> %s",
+        ROS_FATAL("[Flir-Lepton]: Can't open SPI device port --> %s",
           flirSpi_.devicePort.c_str());
         exit(1);
       }
@@ -455,7 +456,7 @@ namespace flir_lepton
         ROS_FATAL("[Flir-Lepton]: Can't set SPI speed (RD)...ioctl failed");
         exit(1);
       }
-      ROS_WARN("[Flir-Lepton]: Opened SPI Port");
+      ROS_INFO("[Flir-Lepton]: Device SPI Port open.");
 
       //ROS_INFO("[SPI Device information]:");
       //std::cout << "  * Device Port: " << flirSpi_.devicePort << std::endl;
@@ -468,10 +469,10 @@ namespace flir_lepton
       statusVal = close(flirSpi_.handler);
       if (statusVal < 0)
       {
-        ROS_FATAL("[Flir-Lepton]: Could not close SPI device");
+        ROS_FATAL("[Flir-Lepton]: Error while trying to close SPI device port");
         exit(1);
       }
-      ROS_WARN("[Flir-Lepton]: Closed SPI Port");
+      ROS_INFO("[Flir-Lepton]: Closing device SPI Port");
     }
 
   }  // namespace flir_lepton_sensor
