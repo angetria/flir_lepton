@@ -58,7 +58,6 @@ namespace flir_lepton
   {
     FlirLeptonHWIface::FlirLeptonHWIface(const std::string& ns):
       nh_(ns),
-      imageEncoding_("mono8"),
       vospiFps_(25)
     {
       loadParameters();
@@ -97,7 +96,7 @@ namespace flir_lepton
       grayImage_.header.frame_id = frameId_;
       grayImage_.height = IMAGE_HEIGHT;
       grayImage_.width = IMAGE_WIDTH;
-      grayImage_.encoding = imageEncoding_;
+      grayImage_.encoding = "mono8";
       grayImage_.is_bigendian = 0;
       grayImage_.step = IMAGE_WIDTH * sizeof(uint8_t);
 

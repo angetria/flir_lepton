@@ -136,7 +136,6 @@ namespace flir_lepton
 
         /* -----< Thermal Image Characteristics >----- */
         std::string frameId_;
-        std::string imageEncoding_;
         /* ------------------------------------------- */
 
         /* ------< Scene Temperature Values >--------- */
