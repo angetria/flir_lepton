@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 
   int rate;
   ros::NodeHandle("/flir_lepton_sensor").param<int>(
-      "frame_rate", rate, 27);
+      "frame_rate", rate, 20);
   ros::Rate loop_rate(rate);
 
   while(ros::ok())

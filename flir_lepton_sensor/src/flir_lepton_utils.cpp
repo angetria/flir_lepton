@@ -151,18 +151,13 @@ namespace flir_lepton
       return calibMap;
     }
 
-
-    std::map<uint16_t, float> Utils::temperLUT(void)
+    void Utils::toColormap(uint8_t val, uint8_t& red, uint8_t& green,
+      uint8_t& blue)
     {
-
+      red = colormap::rainbow[3 * val];
+      green = colormap::rainbow[3 * val + 1];
+      blue = colormap::rainbow[3 * val + 2];
     }
-
-
-    void Utils::temperLUT(std::map<uint16_t, float>& temperMap)
-    {
-
-    }
-
 
   }  // namespace flir_lepton_sensor
 }  // namespace flir_lepton

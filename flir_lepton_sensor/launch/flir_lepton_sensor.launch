@@ -2,6 +2,8 @@
 
 <launch>
   <arg name="namespace" default="flir_lepton_sensor" />
+  <arg name="gray_image" default="true" />
+  <arg name="rgb_image" default="true" />
 
   <!-- Flir Lepton Node -->
   <node
@@ -18,5 +20,8 @@
     command="load"
     ns="$(arg namespace)"
   />
+
+  <param name="$(arg namespace)/gray_image" value="$(arg gray_image)" />
+  <param name="$(arg namespace)/rgb_image" value="$(arg rgb_image)" />
 
 </launch>

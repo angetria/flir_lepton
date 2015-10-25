@@ -58,6 +58,8 @@
 #include "flir_lepton_msgs/TemperaturesMsg.h"
 #include "flir_lepton_msgs/FlirLeptonBatchMsg.h"
 #include "flir_lepton_msgs/FlirLeptonRawMsg.h"
+#include <boost/thread.hpp>
+#include <boost/thread/mutex.hpp>
 /* --------------------- */
 
 
@@ -67,10 +69,16 @@ namespace flir_lepton
   {
     #define IMAGE_HEIGHT 60
     #define IMAGE_WIDTH 80
+    #define MAX_RESTART_ATTEMPS_EXIT 5 
+    #define MAX_RESETS_ERROR 750
 
+ 
     class FlirLeptonHWIface
     {
       private:
+        /*!
+         *  @brief Flir Lepton VoSPI struct.
+         */
         struct FlirSpi
         {
           std::string devicePort;
@@ -80,9 +88,13 @@ namespace flir_lepton
           uint16_t delay;
           int handler;
 
-          void configFlirSpi(const ros::NodeHandle& nh);
+          void configSpiParams(const ros::NodeHandle& nh);
         };
 
+
+        /*!
+         * @brief Flir Lepton data frame acquisition struct.
+         */
         struct FlirDataFrame
         {
           uint16_t packetSize;
@@ -101,13 +113,15 @@ namespace flir_lepton
 
 
         /* ------< Published Topics >------ */
-        std::string imageTopic_;
+        std::string grayTopic_;
+        std::string rgbTopic_;
         std::string temperTopic_;
         std::string batchTopic_;
         /* -------------------------------- */
 
         /* -------< ROS Publishers >------- */
-        ros::Publisher imagePublisher_;
+        ros::Publisher grayPublisher_;
+        ros::Publisher rgbPublisher_;
         ros::Publisher temperPublisher_;
         ros::Publisher batchPublisher_;
         ros::Publisher raw_publisher_;
@@ -115,9 +129,8 @@ namespace flir_lepton
         ros::NodeHandle nh_;
         ros::Time now_;
 
-        int statusValue_;
         FlirSpi flirSpi_;  // SPI interface container
-
+        float vospiFps_;
         FlirDataFrame flirDataFrame_;
         uint16_t* lastFrame_;
 
@@ -133,21 +146,27 @@ namespace flir_lepton
         /* -------------< Publishing Messages >-------------- */
         flir_lepton_msgs::TemperaturesMsg temperMsg_;
         flir_lepton_msgs::FlirLeptonBatchMsg batchMsg_;
-        sensor_msgs::Image thermalImage_;
+        sensor_msgs::Image grayImage_;
+        sensor_msgs::Image rgbImage_;
         /* -------------------------------------------------- */
 
         // Raw sensor signal values to absolute thermal values map
         std::map<uint16_t, float> calibMap_;
         std::string calibFileUri_;
 
-        int MAX_RESTART_ATTEMPS_EXIT;
-        int MAX_RESETS_ERROR;
+        bool pubGray_;
+        bool pubRgb_;
+
+        // Threads
+        boost::thread ioThread_;
+        boost::mutex mtxLock_;
 
 
         /*!
          * @brief Loads parameters from parameter server
          */
         void loadParameters(void);
+
 
         /*!
          * @brief Opens SPI device port for communication with flir lepton camera
@@ -161,10 +180,14 @@ namespace flir_lepton
         void closeDevice(void);
 
 
+        void initThreadedIO(void);
+
+
         /*!
          * @brief Reads a frame from flir lepton thermal camera
          */
         void readFrame(void);
+
 
         /*!
          * @brief Exports thermal signal values from an obtained VoSPI frame
@@ -172,10 +195,18 @@ namespace flir_lepton
         void processFrame(void);
 
 
+        /*!
+         *  @brief Allocate the uint16_t buffer memory
+         */
         void allocateFrameData(void);
 
 
         void fillBatchMsg(void);
+
+
+        float calcVoSPIfps(
+          boost::posix_time::ptime& start, boost::posix_time::ptime& stop);
+
 
       public:
 

@@ -47,6 +47,8 @@
 #include <map>
 #include <cstring>
 
+#include "colormaps.h"
+
 
 namespace flir_lepton
 {
@@ -80,9 +82,10 @@ namespace flir_lepton
         static std::map<uint16_t, float> loadThermalCalibMap(
           const std::string& calibFileUri);
 
-        static std::map<uint16_t, float> temperLUT(void);
+        static void toColormap(uint8_t val, uint8_t& red, uint8_t& green,
+          uint8_t& blue);
 
-        static void temperLUT(std::map<uint16_t, float>& temperMap);
+          
     };
 
   }  // namespace flir_lepton_sensor

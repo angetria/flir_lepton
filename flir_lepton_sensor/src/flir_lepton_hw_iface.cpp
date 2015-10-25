@@ -56,34 +56,50 @@ namespace flir_lepton
 {
   namespace flir_lepton_sensor
   {
-    FlirLeptonHWIface::FlirLeptonHWIface(
-      const std::string& ns):
+    FlirLeptonHWIface::FlirLeptonHWIface(const std::string& ns):
       nh_(ns),
       imageEncoding_("mono8"),
-      MAX_RESETS_ERROR(750),
-      MAX_RESTART_ATTEMPS_EXIT(5)
+      vospiFps_(25)
     {
       loadParameters();
 
       calibMap_ = Utils::loadThermalCalibMap(calibFileUri_);
+      flirSpi_.configSpiParams(nh_);
 
       openDevice();
+      /* ----------------------- Publishers --------------------------------- */
       temperPublisher_ = nh_.advertise<flir_lepton_msgs::TemperaturesMsg>(
         temperTopic_, 1);
-      imagePublisher_ = nh_.advertise<sensor_msgs::Image>(imageTopic_, 1);
+
+      if(pubGray_)
+      {
+        grayPublisher_ = nh_.advertise<sensor_msgs::Image>(grayTopic_, 1);
+      }
+
+      if(pubRgb_)
+      {
+        rgbPublisher_ = nh_.advertise<sensor_msgs::Image>(rgbTopic_, 1);
+        rgbImage_.header.frame_id = frameId_;
+        rgbImage_.height = IMAGE_HEIGHT;
+        rgbImage_.width = IMAGE_WIDTH;
+        rgbImage_.encoding = "rgb8";
+        rgbImage_.is_bigendian = 0;
+        rgbImage_.step = IMAGE_WIDTH * sizeof(uint8_t) * 3;
+      }
+
       batchPublisher_ = nh_.advertise<flir_lepton_msgs::FlirLeptonBatchMsg>(
         batchTopic_, 1);
+      /* -------------------------------------------------------------------- */
 
       flirDataFrame_.allocateBuffers();
       allocateFrameData();
 
-      /* -------------- Initialize topic message containers ----------------- */
-      thermalImage_.header.frame_id = frameId_;
-      thermalImage_.height = IMAGE_HEIGHT;
-      thermalImage_.width = IMAGE_WIDTH;
-      thermalImage_.encoding = imageEncoding_;
-      thermalImage_.is_bigendian = 0;
-      thermalImage_.step = IMAGE_WIDTH * sizeof(uint8_t);
+      grayImage_.header.frame_id = frameId_;
+      grayImage_.height = IMAGE_HEIGHT;
+      grayImage_.width = IMAGE_WIDTH;
+      grayImage_.encoding = imageEncoding_;
+      grayImage_.is_bigendian = 0;
+      grayImage_.step = IMAGE_WIDTH * sizeof(uint8_t);
 
       temperMsg_.header.frame_id = frameId_;
       temperMsg_.values.layout.dim.push_back(std_msgs::MultiArrayDimension());
@@ -92,6 +108,7 @@ namespace flir_lepton
       temperMsg_.values.layout.dim[1].size = IMAGE_WIDTH;
 
       batchMsg_.header.frame_id = frameId_;
+      initThreadedIO();
       /* -------------------------------------------------------------------- */
     }
 
@@ -99,6 +116,8 @@ namespace flir_lepton
     FlirLeptonHWIface::~FlirLeptonHWIface()
     {
       closeDevice();
+      ioThread_.interrupt();
+      ioThread_.join();
     }
 
 
@@ -123,26 +142,28 @@ namespace flir_lepton
 
       nh_.param<std::string>("flir_urdf/camera_optical_frame", frameId_,
         "/flir_optical_frame");
-      nh_.param<std::string>("published_topics/flir_image_topic", imageTopic_,
-        "/flir_lepton/image");
+      nh_.param<std::string>("published_topics/flir_gray_image_topic", grayTopic_,
+        "/flir_lepton/image/gray");
+      nh_.param<std::string>("published_topics/flir_rgb_image_topic", rgbTopic_,
+        "/flir_lepton/image/rgb");
       nh_.param<std::string>("published_topics/flir_temper_topic",
         temperTopic_, "flir_lepton/temperatures");
       nh_.param<std::string>("published_topics/flir_batch_topic",
         batchTopic_, "flir_lepton/batch");
+      nh_.param<bool>("gray_image", pubGray_, true);
+      nh_.param<bool>("rgb_image", pubRgb_, true);
       /* ----------------------------------------- */
 
-      flirSpi_.configFlirSpi(nh_);
 
       nh_.param<int32_t>("iface/packet_size", param, 164);
       flirDataFrame_.packetSize = param;
       flirDataFrame_.packetSize16 = param / 2;
       nh_.param<int32_t>("iface/packets_per_frame", param, 60);
       flirDataFrame_.packetsPerFrame = param;
-
     }
 
 
-    void FlirLeptonHWIface::FlirSpi::configFlirSpi(
+    void FlirLeptonHWIface::FlirSpi::configSpiParams(
       const ros::NodeHandle& nh)
     {
       int param;
@@ -156,10 +177,11 @@ namespace flir_lepton
       nh.param<std::string>("iface/device_port", devicePort, "/dev/spidev0.0");
     }
 
+    void FlirLeptonHWIface::initThreadedIO(void)
+    {
+      ioThread_ = boost::thread(&FlirLeptonHWIface::readFrame, this);
+    }
 
-    /*!
-     *  @brief Allocate the uint16_t buffer memory
-     */
     void FlirLeptonHWIface::FlirDataFrame::allocateBuffers(void)
     {
       frameBuffer = new uint8_t[packetSize * packetsPerFrame];
@@ -176,17 +198,23 @@ namespace flir_lepton
 
     void FlirLeptonHWIface::run(void)
     {
-      readFrame();
+      //readFrame();;
+      //ROS_INFO("[Flir-Lepton]: VoSPI average fps: %f", vospiFps_);
       now_ = ros::Time::now();
       processFrame();
-      uint16_t maxVal = flirDataFrame_.maxVal;
-      uint16_t minVal = flirDataFrame_.minVal;
 
       //Batch msg creation
       fillBatchMsg();
 
       /* --------< Publish Messages >-------- */
-      imagePublisher_.publish(thermalImage_);
+      if(pubGray_)
+      {
+        grayPublisher_.publish(grayImage_);
+      }
+      if(pubRgb_)
+      {
+        rgbPublisher_.publish(rgbImage_);
+      }
       temperPublisher_.publish(temperMsg_);
       batchPublisher_.publish(batchMsg_);
       /* ------------------------------------ */
@@ -210,79 +238,105 @@ namespace flir_lepton
       uint16_t frameSize16 = packetSize16 * packetsPerFrame;
       uint16_t maxVal, minVal;
       uint16_t value, temp;
+      boost::posix_time::ptime begin, end;
 
       /* ------------------ Read raw frame data from spi -------------------- */
-      for (uint16_t i = 0; i < packetsPerFrame; i++)
+      while(1)
       {
-        read(flirSpi_.handler, &rawBuffer[packetSize * i],
-          sizeof(uint8_t) * packetSize);
-
-        // flir sends discard packets that we need to resolve
-        packetNumber = rawBuffer[i * packetSize + 1];
-        if (packetNumber != i)
+        begin = boost::posix_time::microsec_clock::local_time();
+        try
         {
-          // if it is a drop packet, reset i
-          i = -1;
-          resets += 1;
-          // sleep for 1ms
-          ros::Duration(0.01).sleep();
-
-          // If resets reach this value, we assume an error on communication with
-          // flir-lepton sensor. Perform communication restart
-          if (resets == MAX_RESETS_ERROR) //Reach 750 sometimes
+          restarts = 0;
+          for (uint16_t i = 0; i < packetsPerFrame; i++)
           {
-            restarts ++;
-            ROS_ERROR("[Flir-Lepton]: Error --> resets numbered at [%d]", resets);
-            closeDevice();
-            ros::Duration(2.0).sleep();
-            openDevice();
-            resets = 0;
+            read(flirSpi_.handler, &rawBuffer[packetSize * i],
+              sizeof(uint8_t) * packetSize);
+
+            // flir sends discard packets that we need to resolve
+            packetNumber = rawBuffer[i * packetSize + 1];
+            if (packetNumber != i)
+            {
+              // if it is a drop packet, reset i
+              i = -1;
+              resets += 1;
+              // sleep for 1ms
+              ros::Duration(0.01).sleep();
+
+              // If resets reach this value, we assume an error on communication with
+              // flir-lepton sensor. Perform communication restart
+              if (resets == MAX_RESETS_ERROR) //Reach 750 sometimes
+              {
+                restarts ++;
+                ROS_ERROR("[Flir-Lepton]: Error --> resets numbered at [%d]", resets);
+                closeDevice();
+                boost::this_thread::sleep(boost::posix_time::milliseconds(25));
+                openDevice();
+                resets = 0;
+              }
+
+              // If true we assume an exit status.. Kill process and exit
+              if (restarts > MAX_RESTART_ATTEMPS_EXIT)
+              {
+                ROS_FATAL("[Flir-Lepton]: Cannot communicate with sensor. Exiting...");
+                ros::shutdown();
+                exit(1);
+              }
+            }
+          }
+          /* -------------------------------------------------------------------- */
+
+          // Cast to uint16_t in (2 bytes).
+          uint16_t* rawBuffer16 = (uint16_t*) rawBuffer;
+          uint16_t cleanDataCount = 0;
+          maxVal = 0;
+          minVal = -1;
+
+          // Process this acquired from spi port, frame and create the data vector
+          for (int i = 0; i < frameSize16; i++)
+          {
+            //Discard the first 4 bytes. it is the header.
+            if (i % packetSize16 < 2) continue;
+
+            temp = rawBuffer[i * 2];
+            rawBuffer[i * 2] = rawBuffer[i * 2 + 1];
+            rawBuffer[i * 2 + 1] = temp;
+            value = rawBuffer16[i];
+
+            cleanData[cleanDataCount] = value;
+            cleanDataCount++;
+
+            if (value > maxVal) {maxVal = value;}
+            if (value < minVal) {minVal = value;}
           }
 
-          // If true we assume an exit status.. Kill process and exit
-          if (restarts > MAX_RESTART_ATTEMPS_EXIT)
-          {
-            ROS_FATAL("[Flir-Lepton]: Cannot communicate with sensor. Exiting...");
-            ros::shutdown();
-            exit(1);
-          }
+          mtxLock_.lock();
+          // Copy cleanData to class frameData buffer
+          memcpy(frameData, cleanData, IMAGE_HEIGHT * IMAGE_WIDTH * sizeof(uint16_t));
+          flirDataFrame_.minVal = minVal;
+          flirDataFrame_.maxVal = maxVal;
+          mtxLock_.unlock();
         }
+        catch (boost::thread_interrupted&) {return;}
+        end = boost::posix_time::microsec_clock::local_time();
+        calcVoSPIfps(begin, end);
       }
-      /* -------------------------------------------------------------------- */
-
-      // Cast to uint16_t in (2 bytes).
-      uint16_t* rawBuffer16 = (uint16_t*) rawBuffer;
-      uint16_t cleanDataCount = 0;
-      maxVal = 0;
-      minVal = -1;
-
-      // Process this acquired from spi port, frame and create the data vector
-      for (int i = 0; i < frameSize16; i++)
-      {
-        //Discard the first 4 bytes. it is the header.
-        if (i % packetSize16 < 2) continue;
-
-        temp = rawBuffer[i * 2];
-        rawBuffer[i * 2] = rawBuffer[i * 2 + 1];
-        rawBuffer[i * 2 + 1] = temp;
-        value = rawBuffer16[i];
-
-        cleanData[cleanDataCount] = value;
-        cleanDataCount++;
-
-        if (value > maxVal) {maxVal = value;}
-        if (value < minVal) {minVal = value;}
-      }
-
-      // Copy cleanData to class frameData buffer
-      memcpy(frameData, cleanData, IMAGE_HEIGHT * IMAGE_WIDTH * sizeof(uint16_t));
-      flirDataFrame_.minVal = minVal;
-      flirDataFrame_.maxVal = maxVal;
     }
 
 
+    float FlirLeptonHWIface::calcVoSPIfps(
+      boost::posix_time::ptime& start, boost::posix_time::ptime& stop)
+    {
+      boost::posix_time::time_duration elapsedDur = stop - start;
+      vospiFps_ = (vospiFps_ +
+        static_cast<float>( 1000.0 / elapsedDur.total_milliseconds())) / 2;
+
+      return vospiFps_;
+    }
+
     /*!
      *  @brief Process the last obtained from flir lepton VoSPI frame.
+     *  
+     *  @return Void.
      */
     void FlirLeptonHWIface::processFrame(void)
     {
@@ -291,24 +345,36 @@ namespace flir_lepton
       float temperVal;
       float temperSum = 0;
       uint16_t minVal, maxVal;
+      uint8_t red = 0, green = 0, blue = 0;
 
-      /* ==================================================================== */
+      /* -------------------------------------------------------------------- */
+      mtxLock_.lock();
       memcpy(lastFrame_, flirDataFrame_.frameData,
         IMAGE_HEIGHT * IMAGE_WIDTH * sizeof(uint16_t));
       minVal = flirDataFrame_.minVal;
       maxVal = flirDataFrame_.maxVal;
-      /* ==================================================================== */
+      mtxLock_.unlock();
+      /* -------------------------------------------------------------------- */
 
       // Clear previous acquired frame temperature values
       temperMsg_.values.data.clear();
-      thermalImage_.data.clear();
+      grayImage_.data.clear();
+      if(pubRgb_) {rgbImage_.data.clear();}
 
       for (int i = 0; i < IMAGE_WIDTH; i++) {
         for (int j = 0; j < IMAGE_HEIGHT; j++) {
           // Thermal image creation
           imageVal = Utils::signalToImageValue(
             lastFrame_[i * IMAGE_HEIGHT + j], minVal, maxVal);
-          thermalImage_.data.push_back(imageVal);
+          grayImage_.data.push_back(imageVal);
+
+          if(pubRgb_)
+          {
+            Utils::toColormap(imageVal, red, green, blue);
+            rgbImage_.data.push_back(red);
+            rgbImage_.data.push_back(green);
+            rgbImage_.data.push_back(blue);
+          }
 
           // Scene frame Temperatures vector creation.
           temperVal = Utils::signalToTemperature(
@@ -318,67 +384,74 @@ namespace flir_lepton
         }
       }
 
-      thermalImage_.header.stamp = now_;
+      grayImage_.header.stamp = now_;
       temperMsg_.header.stamp = now_;
 
       frameAvgTemper_ = temperSum / (IMAGE_HEIGHT * IMAGE_WIDTH);
     }
 
 
+    /*!
+     *  @brief Fills batch topic msg.
+     *
+     *  @return Void.
+     */
     void FlirLeptonHWIface::fillBatchMsg(void)
     {
       batchMsg_.header.stamp = now_;
       batchMsg_.temperatures = temperMsg_;
-      batchMsg_.thermalImage = thermalImage_;
+      batchMsg_.thermalImage = grayImage_;
     }
 
 
     void FlirLeptonHWIface::openDevice(void)
     {
+      int statusVal;
       flirSpi_.handler = open(flirSpi_.devicePort.c_str(), O_RDWR);
       if (flirSpi_.handler < 0)
       {
-        ROS_FATAL("[Flir-Lepton]: Can't open SPI device");
+        ROS_FATAL("[Flir-Lepton]: Can't open SPI device --> %s",
+          flirSpi_.devicePort.c_str());
         exit(1);
       }
 
-      statusValue_ = ioctl(flirSpi_.handler, SPI_IOC_WR_MODE, &flirSpi_.mode);
-      if (statusValue_ < 0)
+      statusVal = ioctl(flirSpi_.handler, SPI_IOC_WR_MODE, &flirSpi_.mode);
+      if (statusVal < 0)
       {
         ROS_FATAL("[Flir-Lepton]: Can't set SPI-mode (WR)...ioctl failed");
         exit(1);
       }
 
-      statusValue_ = ioctl(flirSpi_.handler, SPI_IOC_RD_MODE, &flirSpi_.mode);
-      if (statusValue_ < 0)
+      statusVal = ioctl(flirSpi_.handler, SPI_IOC_RD_MODE, &flirSpi_.mode);
+      if (statusVal < 0)
       {
         ROS_FATAL("[Flir-Lepton]: Can't set SPI-mode (RD)...ioctl failed");
         exit(1);
       }
 
-      statusValue_ = ioctl(flirSpi_.handler, SPI_IOC_WR_BITS_PER_WORD, &flirSpi_.bits);
-      if (statusValue_ < 0)
+      statusVal = ioctl(flirSpi_.handler, SPI_IOC_WR_BITS_PER_WORD, &flirSpi_.bits);
+      if (statusVal < 0)
       {
         ROS_FATAL("[Flir-Lepton]: Can't set SPI bitsperWord (WD)...ioctl failed");
         exit(1);
       }
 
-      statusValue_ = ioctl(flirSpi_.handler, SPI_IOC_RD_BITS_PER_WORD, &flirSpi_.bits);
-      if (statusValue_ < 0)
+      statusVal = ioctl(flirSpi_.handler, SPI_IOC_RD_BITS_PER_WORD, &flirSpi_.bits);
+      if (statusVal < 0)
       {
         ROS_FATAL("[Flir-Lepton]: Can't set SPI bitsperWord (RD)...ioctl failed");
         exit(1);
       }
 
-      statusValue_ = ioctl(flirSpi_.handler, SPI_IOC_WR_MAX_SPEED_HZ, &flirSpi_.speed);
-      if (statusValue_ < 0)
+      statusVal = ioctl(flirSpi_.handler, SPI_IOC_WR_MAX_SPEED_HZ, &flirSpi_.speed);
+      if (statusVal < 0)
       {
         ROS_FATAL("[Flir-Lepton]: Can't set SPI speed (WD)...ioctl failed");
         exit(1);
       }
 
-      statusValue_ = ioctl(flirSpi_.handler, SPI_IOC_RD_MAX_SPEED_HZ, &flirSpi_.speed);
-      if (statusValue_ < 0)
+      statusVal = ioctl(flirSpi_.handler, SPI_IOC_RD_MAX_SPEED_HZ, &flirSpi_.speed);
+      if (statusVal < 0)
       {
         ROS_FATAL("[Flir-Lepton]: Can't set SPI speed (RD)...ioctl failed");
         exit(1);
@@ -390,11 +463,11 @@ namespace flir_lepton
     }
 
 
-
     void FlirLeptonHWIface::closeDevice(void)
     {
-      statusValue_ = close(flirSpi_.handler);
-      if (statusValue_ < 0)
+      int statusVal;
+      statusVal = close(flirSpi_.handler);
+      if (statusVal < 0)
       {
         ROS_FATAL("[Flir-Lepton]: Could not close SPI device");
         exit(1);

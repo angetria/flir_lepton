@@ -10,6 +10,9 @@ It has been developed to be PLATFORM-Independent.
 
 ## Tests
 
+Sensor data acquisition is handled by a thread. Using this technique, the required time for retrieving a full scene frame has been measured at
+approximately, [31, 50] milliseconds.
+
 
 ## Contributors
 
