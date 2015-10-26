@@ -385,6 +385,7 @@ namespace flir_lepton
       }
 
       grayImage_.header.stamp = now_;
+      rgbImage_.header.stamp = now_;
       temperMsg_.header.stamp = now_;
 
       frameAvgTemper_ = temperSum / (IMAGE_HEIGHT * IMAGE_WIDTH);
