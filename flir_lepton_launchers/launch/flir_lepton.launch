@@ -6,8 +6,8 @@
 
   <!-- Launch the flir_lepton package -->
   <include file="$(find flir_lepton_sensor)/launch/flir_lepton_sensor.launch" >
-    <arg name="rgb_image" default="true" />
-    <arg name="gray_image" default="true" />
+    <arg name="gray_image" value="$(arg gray_image)" />
+    <arg name="rgb_image" value="$(arg rgb_image)" />
   </include>
 
 
