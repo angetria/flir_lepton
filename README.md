@@ -1,8 +1,15 @@
 ## Synopsis
 
-ROS Package to interfear with Flir-Lepton LWIR sensor
+Flir-Lepton LWIR sensor, ROS package.
 
-## Directories
+
+## Packages
+
+Integrated packages:
+- flir_lepton_sensor:
+- flir_lepton_image_processing:
+- flir_lepton_msgs:
+- flir_lepton_launchers:
 
 
 ## Tests
