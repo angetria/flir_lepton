@@ -2,6 +2,10 @@
 
 Flir-Lepton LWIR sensor, ROS package.
 
+As this is a ROS package, ROS has to be installed onto the system. For instructions regarding installation of ROS, follow [this link](http://wiki.ros.org/indigo/Installation)
+A minimal installation of ROS is only required.
+
+The package has been tested under [Hydro](http://wiki.ros.org/hydro/Installation) and [Indigo](http://wiki.ros.org/indigo/Installation) releases, both armhf and x86_64 architectures.
 
  
 ## Packages
@@ -11,6 +15,30 @@ Integrated packages:
 - flir_lepton_image_processing:
 - flir_lepton_msgs:
 - flir_lepton_launchers:
+
+## Build procedure
+
+As this is a ROS package, build procedures are done using the ROS framework.
+
+First create a [catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
+
+```shell
+$ mkdir -p ~/lepton_catkin_ws/src
+```
+
+Clone this repository under the src/ directory of the previously created catkin workspace directory.
+
+```shell
+$ cd ~/lepton_catkin_ws/src && git clone git@github.com:angetria/flir_lepton.git
+```
+
+Build sources.
+
+```shell
+$ cd ~/lepton_catkin_ws && catkin_make
+```
+
+No other external dependencies exists. Has been tested on **Debian** and **Ubuntu** distributions.
 
 
 ## How to run nodes
@@ -67,18 +95,20 @@ Like already mentioned, this package integrates some image processing functional
 $ roslaunch flir_lepton_launchers flir_lepton.launch
 ```
 
+Launching with image processing capabilities is an extension. It does not overwrite the default behaviors (flir_lepton_sensor)
+
 The image processing node is used by default.
 
 ## Tests
 
-This metapackage does not include any tests. Node (package) specific tests can be found under the relevant package directory.
+This metapackage does not include any tests. Node (package) specific tests are developed under each package directory.
 
 ## Contributors
 
-- Konstaninos Panayiotou, **[klpanagi@gmail.com]**
-- Angelos Triantafyllidis, **[aggelostriadafillidis@gmail.com]**
+- Konstaninos Panayiotou, [klpanagi@gmail.com]
+- Angelos Triantafyllidis, [aggelostriadafillidis@gmail.com]
 
 
 ## Contact 
 
-Angelos Triantafyllidis, **[aggelostriadafillidis@gmail.com]**
+Angelos Triantafyllidis, [aggelostriadafillidis@gmail.com]
