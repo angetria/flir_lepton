@@ -99,6 +99,23 @@ Launching with image processing capabilities is an extension. It does not overwr
 
 The image processing node is used by default.
 
+
+###Launch the  standalone flir_lepton_image_processing node
+
+In case of an independent use of this node, for exaple using a rosbag file,simply execute:
+
+```shell
+$ roslaunch flir_lepton_image_processing flir_lepton_image_processing.launch
+```
+
+By default rosbag mode is set to false. To be enabled simply execute:
+
+```shell
+$ roslaunch flir_lepton_image_processing flir_lepton_image_processing.launch  bag_mode:=true
+```
+
+**Dont forget to add the full path of your bag file in the launcher [here](https://github.com/angetria/flir_lepton/blob/master/flir_lepton_image_processing/launch/flir_lepton_image_processing.launch)**
+
 ## Tests
 
 This metapackage does not include any tests. Node (package) specific tests are developed under each package directory.

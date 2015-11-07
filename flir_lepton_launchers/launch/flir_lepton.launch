@@ -13,7 +13,7 @@
 
   <!-- Launch the flir_lepton_image_processing package -->
   <include if="$(arg image_processing)"
-    file="$(find flir_lepton_image_processing)/launch/flir_lepton_image_processing.launch" 
+    file="$(find flir_lepton_image_processing)/launch/flir_lepton_image_processing.launch"
   />
 
 </launch>
