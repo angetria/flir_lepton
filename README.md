@@ -40,9 +40,9 @@ $ cd ~/lepton_catkin_ws && catkin_make
 
 Don't forget to source the setup.bash file.
 
-'''shell
+```shell
 $ source /opt/ros/<distro>/setup.bash
-'''
+```
 
 Using the short name of your ROS distribution instead of <distro>. Or you can either add this line to your .bashrc
 
