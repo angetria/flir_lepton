@@ -3,7 +3,6 @@ project(flir_lepton_msgs)
 
 find_package(catkin REQUIRED COMPONENTS
   message_generation
-  #message_runtime
   std_msgs
   sensor_msgs
 )
@@ -41,8 +40,6 @@ generate_messages(
 ## Declare things to be passed to dependent projects
 catkin_package(
   CATKIN_DEPENDS
-  #message_generation
-  message_runtime
   std_msgs
   sensor_msgs
 )
