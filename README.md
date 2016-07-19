@@ -130,7 +130,7 @@ This metapackage does not include any tests. Node (package) specific tests are d
 
 ## Contributors
 
-- Konstaninos Panayiotou, [klpanagi@gmail.com]
+- Konstaninos Panayiotou, [klpanagi@gmail.com] :goberserk:
 - Angelos Triantafyllidis, [aggelostriadafillidis@gmail.com]
 
 
