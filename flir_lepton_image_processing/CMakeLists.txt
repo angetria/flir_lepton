@@ -4,6 +4,7 @@ project(flir_lepton_image_processing)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   cv_bridge
+  OpenCV
   #image_transport
   dynamic_reconfigure
   flir_lepton_msgs
